@@ -1,2 +1,2 @@
 # musicplayer
-Ultra lightweight python music player..
+Ultra lightweight python music player.
