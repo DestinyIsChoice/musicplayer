@@ -33,8 +33,10 @@ In order to run the music player on Termux:
   * Install git using `pkg i git`
   * Clone the repository using `git clone https://github.com/DestinyIsChoice/musicplayer.git`
   * Enter the musicplayer folder using `cd musicplayer`
+  * Open the startup script using `bash musicstartup.sh`
 
-* Open the startup script using `bash musicstartup.sh`
+* Normal use:
+  * Open the startup script using `bash musicplayer/musicstartup.sh`
 
 Once the music player is running:
 
