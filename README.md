@@ -73,4 +73,4 @@ Commands:
   > Once all songs in the music folder have been played, the music player will ask you to select a new music folder
 
 The controls can be very difficult to understand. If you feel that this documentation has not done a good job explaining the music player, feel free to look at the source code and modify it yourself  
-This music player was built for speed and efficiency over ease of understanding.
+This music player was built for speed and efficiency over ease of understanding
