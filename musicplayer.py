@@ -2,6 +2,7 @@ import json
 import os
 from os import environ
 import random
+import shutil
 import sys
 
 
@@ -27,7 +28,7 @@ def get_path():
 
     # Validates user input as a folder containing music by having user input again if not a folder containing music.
     global path
-    path = input("→ Please input the path to your music folder! ")
+    path = input("→ Please input the path to your music folder!\n→ ")
     while True:
         if os.path.isdir(path):
             if len(os.listdir(path)) == 0:
@@ -151,6 +152,8 @@ def main(initial_input):
 
     # Handles exiting the program.
     if initial_input == "\\":
+        pygame.mixer.quit()
+        shutil.rmtree(f"{path}/temp")
         print("→ Exiting! ")
         exit(0)
     elif initial_input == "_":
