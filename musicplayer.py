@@ -158,6 +158,7 @@ def main(initial_input):
         exit(0)
     elif initial_input == "_":
         main(input("→ "))
+
     # Handles streaming an audio file from YouTube.
     if initial_input == initial_input.replace("_", ""):
         if initial_input == "-":
@@ -410,3 +411,4 @@ def main(initial_input):
 
 get_path()
 main(input("→ "))
+
