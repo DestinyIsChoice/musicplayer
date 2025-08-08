@@ -153,7 +153,10 @@ def main(initial_input):
     # Handles exiting the program.
     if initial_input == "\\":
         pygame.mixer.quit()
-        shutil.rmtree(f"{path}/temp")
+        try:
+            shutil.rmtree(f"{path}/temp")
+        except:
+            pass
         print("→ Exiting! ")
         exit(0)
     elif initial_input == "_":
@@ -411,4 +414,5 @@ def main(initial_input):
 
 get_path()
 main(input("→ "))
+
 
