@@ -21,5 +21,6 @@ rm -f /data/data/com.termux/files/usr/etc/pulse/default.pa
 cp "$SCRIPT_DIR/default.pa" /data/data/com.termux/files/usr/etc/pulse/
 
 # Clear console and run music player.
+cd $SCRIPT_DIR
 clear
 python "$SCRIPT_DIR/musicplayer.py"
