@@ -4,8 +4,8 @@ In order to run the music player outside of Termux:
 
 * First use setup:
 
-  Download only musicplayer.py
-
+        git clone https://github.com/DestinyIsChoice/musicplayer.git
+        cd musicplayer
         pip install inputimeout  
         pip install mutagen  
         pip install pygame  
@@ -15,7 +15,7 @@ In order to run the music player outside of Termux:
 
 * Normal use:
 
-      python musicplayer.py  
+      python musicplayer/musicplayer.py  
 
 In order to run the music player in Termux:
 
