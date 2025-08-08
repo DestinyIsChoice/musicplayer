@@ -1,5 +1,5 @@
 # musicplayer
-Ultra lightweight python music player.
+Ultra lightweight python music player
 
 The dependencies are as follows:
 
