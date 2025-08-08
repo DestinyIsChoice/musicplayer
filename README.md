@@ -23,8 +23,11 @@ Running the music player on Termux requires more dependencies:
 
 In order to run the music player if you are not using Termux:
 
-* Install the dependencies using pip *(ex. `pip install inputimeout`)*  
-* Run musicplayer.py  
+* First use setup:
+ * Install the dependencies using pip *(ex. `pip install inputimeout`)*
+
+* Normal use:
+ * Run musicplayer.py  
 
 In order to run the music player on Termux:
 
