@@ -2,7 +2,6 @@ import json
 import os
 from os import environ
 import random
-import shutil
 import sys
 
 
@@ -10,14 +9,11 @@ import sys
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 
 
-from inputimeout import inputimeout
+from inputimeout import inputimeout, TimeoutOccurred
 from mutagen.mp3 import MP3
 import pygame
 from youtube_search import YoutubeSearch
 import yt_dlp as youtube_dl
-
-
-path = ""
 
 
 def get_path():
@@ -28,15 +24,14 @@ def get_path():
 
     # Validates user input as a folder containing music by having user input again if not a folder containing music.
     global path
-    path = input("→ Please input the path to your music folder!\n→ ")
+    path = input("→ Please input the path to your music folder! ")
     while True:
-        if os.path.isdir(path):
-            if len(os.listdir(path)) == 0:
-                print("→ This folder currently contains no music! ")
-        else:
-            os.mkdir(path)
-            print("→ This folder currently contains no music! ")
-        break
+        try:
+            if (len(os.listdir(path)) == 0):
+                path = input("→ Please input the path to your music folder! ")
+            break
+        except:
+            path = input("→ Please input the path to your music folder! ")
 
 
 def validate_int():
@@ -50,14 +45,14 @@ def validate_int():
     while True:
 
         # Allows user to select a song if selecting is cancelled.
-        if validated_string == "-":
+        if (validated_string == "-"):
             main(input("→ "))
 
         # Validates user input as integer
         else:
             try:
                 validated_string = int(validated_string)
-                return validated_string
+                return(validated_string)
             except:
                 validated_string = input("→ ")
 
@@ -69,7 +64,7 @@ def clean(string):
     return string.translate(str.maketrans('', '', '"/\\<>*:|?'))
 
 
-def get_audio(options, index, folder, name):
+def get_audio(options, index, path, name):
     """Downloads audio from YouTube.
 
     Uses silent output.
@@ -77,7 +72,7 @@ def get_audio(options, index, folder, name):
     Uses ffmpeg to get mp3 file.
     """
     try:
-        os.remove(f"{folder}/{name}.mp3")
+        os.remove(f"{path}/{name}.mp3")
     except:
         pass
 
@@ -88,7 +83,7 @@ def get_audio(options, index, folder, name):
     # Downloads audio from YouTube as mp3 using ffmpeg.
     with youtube_dl.YoutubeDL({
         'format': 'bestaudio/best',
-        'outtmpl': f"{folder}/{name}",
+        'outtmpl': f"{path}/{name}",
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
@@ -113,7 +108,7 @@ def allow_pausing(current):
         audio = MP3(current)
 
         # Checks if music is being streamed
-        if (((current.split("/"))[(len(current.split("/"))) - 1]).replace(".mp3", "")) == "file":
+        if ((((current.split("/"))[(len(current.split("/"))) - 1]).replace(".mp3", "")) == "file"):
             print("→ Now playing streamed music!")
         else:
             print(f"→ Now playing {((current.split("/"))[(len(current.split("/"))) - 1]).replace(".mp3", "")}!")
@@ -124,13 +119,13 @@ def allow_pausing(current):
         pausable = "_"
 
     # Checks if user intends to pause music, skip song or select a new song.
-    if pausable == "/":
+    if (pausable == "/"):
         pygame.mixer.music.pause()
         pausable = input("→ (Music paused!) ")
-        if pausable:
+        if (pausable):
             pygame.mixer.music.unpause()
             allow_pausing(current)
-    elif pausable == "_":
+    elif (pausable == "_"):
         return
     else:
         main(pausable)
@@ -151,20 +146,14 @@ def main(initial_input):
     downloaded_name = ""
 
     # Handles exiting the program.
-    if initial_input == "\\":
-        pygame.mixer.quit()
-        try:
-            shutil.rmtree(f"{path}/temp")
-        except:
-            pass
+    if (initial_input == "\\"):
         print("→ Exiting! ")
         exit(0)
-    elif initial_input == "_":
+    elif (initial_input == "_"):
         main(input("→ "))
-
     # Handles streaming an audio file from YouTube.
-    if initial_input == initial_input.replace("_", ""):
-        if initial_input == "-":
+    if (initial_input == initial_input.replace("_", "")):
+        if (initial_input == "-"):
             try:
                 youtube_results = json.loads(YoutubeSearch(input("→ "), max_results=10).to_json())
                 for number, video in enumerate(youtube_results["videos"]):
@@ -181,7 +170,7 @@ def main(initial_input):
                 main(input("→ "))
 
         # Handles downloading an audio file from YouTube.
-        elif initial_input == "'":
+        elif (initial_input == "'"):
             try:
                 youtube_results = json.loads(YoutubeSearch(input("→ "), max_results=10).to_json())
                 for number, video in enumerate(youtube_results["videos"]):
@@ -208,7 +197,7 @@ def main(initial_input):
             all_songs.append(song)
             song_characters = []
             song_words = song.split(" ")
-            if len(song_words) > 1:
+            if (len(song_words) > 1):
                 for word in song_words:
                     song_characters.append(((list(word))[0]).lower())
             else:
@@ -218,7 +207,7 @@ def main(initial_input):
             # Checks if user input matches song.
             counter = 0
             for letter in list(input_characters):
-                if letter in song_characters:
+                if (letter in song_characters):
                     counter += 1
             if counter == len(list(input_characters)):
                 intended_songs.append(song)
@@ -228,15 +217,15 @@ def main(initial_input):
             intended_songs.remove("temp")
 
         # Prompts user for which song to play if multiple songs match user input.
-        if len(intended_songs) > 0:
-            if len(intended_songs) > 1:
-                if (downloaded == False) and (downloaded_name == ""):
+        if (len(intended_songs) > 0):
+            if (len(intended_songs) > 1):
+                if ((downloaded == False) and (downloaded_name == "")):
                     try:
                         int((initial_input.split(" "))[1])
                         no_index = False
                     except:
                         no_index = True
-                    if (len(initial_input.split(" ")) == 1) or no_index:
+                    if ((len(initial_input.split(" ")) == 1) or no_index):
                         for number, playable_song in enumerate(intended_songs):
                             print(f"→ {number + 1}.", playable_song[:-4])
                         index = validate_int()
@@ -247,14 +236,13 @@ def main(initial_input):
 
                 # Initializes music player and creates list of songs to be played.
                 pygame.mixer.init()
-                if "temp" in all_songs:
-                    all_songs.remove("temp")
+                all_songs.remove("temp")
                 random.shuffle(all_songs)
 
                 # Adds streamed and downloaded songs to list of songs to be played.
-                if downloaded_name != "":
+                if (downloaded_name != ""):
                     all_songs.insert(0, downloaded_name)
-                elif not downloaded:
+                elif (downloaded == False):
                     try:
                         specific_song = intended_songs[index - 1]
                         all_songs.remove(specific_song)
@@ -271,10 +259,10 @@ def main(initial_input):
                     pygame.mixer.music.play()
 
                     # Allows user to pause music.
-                    if downloaded_name != "":
+                    if (downloaded_name != ""):
                         allow_pausing(f"{path}/{downloaded_name}")
                         downloaded_name = ""
-                    elif downloaded:
+                    elif (downloaded):
                         allow_pausing(f"{path}/{playable_song}")
                     else:
                         allow_pausing(f"{path}/{playable_song}")
@@ -284,14 +272,13 @@ def main(initial_input):
             # Initializes music player and creates list of songs to be played.
             else:
                 pygame.mixer.init()
-                if "temp" in all_songs:
-                    all_songs.remove("temp")
+                all_songs.remove("temp")
                 random.shuffle(all_songs)
 
                 # Adds streamed and downloaded songs to list of songs to be played.
-                if downloaded_name != "":
+                if (downloaded_name != ""):
                     all_songs.insert(0, downloaded_name)
-                elif not downloaded:
+                elif (downloaded == False):
                     all_songs.remove(intended_songs[0])
                     all_songs.insert(0, intended_songs[0])
                 else:
@@ -303,10 +290,10 @@ def main(initial_input):
                     pygame.mixer.music.play()
 
                     # Allows user to pause music.
-                    if downloaded_name != "":
+                    if (downloaded_name != ""):
                         allow_pausing(f"{path}/{downloaded_name}")
                         downloaded_name = ""
-                    elif downloaded:
+                    elif (downloaded):
                         allow_pausing(f"{path}/{playable_song}")
                     else:
                         allow_pausing(f"{path}/{playable_song}")
@@ -315,7 +302,7 @@ def main(initial_input):
 
         # Allows user to select music to play if none is found.
         else:
-            if (initial_input != "-") and (initial_input != "'"):
+            if ((initial_input != "-") and (initial_input != "'")):
                 print("→ No music found!")
             main(input("→ "))
 
@@ -332,11 +319,11 @@ def main(initial_input):
             intended_songs = []
             for individual_input in song.split("_"):
                 input_characters = list((individual_input.split(" "))[0])
-                if input_characters[0] != "-":
+                if (input_characters[0] != "-"):
                     for inputs in os.listdir(path):
                         song_characters = []
                         song_words = inputs.split(" ")
-                        if len(song_words) > 1:
+                        if (len(song_words) > 1):
                             for word in song_words:
                                 song_characters.append(((list(word))[0]).lower())
                         else:
@@ -344,7 +331,7 @@ def main(initial_input):
                         song_characters = [s.lower() for s in song_characters]
                         matching_characters = 0
                         for letter in list(input_characters):
-                            if letter in song_characters:
+                            if (letter in song_characters):
                                 matching_characters += 1
 
                         # Adds song to list of songs to be played if it matches user input.
@@ -356,14 +343,14 @@ def main(initial_input):
                         intended_songs.remove("temp")
 
                     # Prompts user for which song to play if multiple songs match user input.
-                    if len(intended_songs) > 0:
-                        if len(intended_songs) > 1:
+                    if (len(intended_songs) > 0):
+                        if (len(intended_songs) > 1):
                             try:
                                 int((individual_input.split(" "))[1])
                                 no_index = False
                             except:
                                 no_index = True
-                            if no_index:
+                            if (no_index):
                                 for number, playable_song in enumerate(intended_songs):
                                     print(f"→ {number + 1}.", playable_song[:-4])
                                 index = validate_int()
@@ -384,6 +371,7 @@ def main(initial_input):
                     try:
                         youtube_results = json.loads(YoutubeSearch(individual_input.replace("-", ""),
                                                                    max_results=1).to_json())
+                        matching_characters = 1
                         name = youtube_results["videos"][0]["title"]
                         print(f"→ Now downloading {name}! ")
                         title = f"temp/{clean(name)}"
@@ -400,8 +388,7 @@ def main(initial_input):
 
         # Removes temp folder from list of songs to be played.
         pygame.mixer.init()
-        if "temp" in all_songs:
-            all_songs.remove("temp")
+        all_songs.remove("temp")
 
         # Plays songs in list of songs to be played.
         for playable_song in all_songs:
@@ -414,5 +401,3 @@ def main(initial_input):
 
 get_path()
 main(input("→ "))
-
-
