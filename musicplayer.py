@@ -33,7 +33,7 @@ def get_path():
         if os.path.isdir(path):
             if len(os.listdir(path)) == 0:
                 print("→ This folder currently contains no music! ")
-                break
+            break
         else:
             try:
                 os.mkdir(path)
