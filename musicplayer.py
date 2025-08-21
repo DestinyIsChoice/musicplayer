@@ -28,15 +28,19 @@ def get_path():
 
     # Validates user input as a folder containing music by having user input again if not a folder containing music.
     global path
-    path = input("→ Please input the path to your music folder!\n→ ")
     while True:
+        path = input("→ Please input the path to your music folder!\n→ ")
         if os.path.isdir(path):
             if len(os.listdir(path)) == 0:
                 print("→ This folder currently contains no music! ")
+                break
         else:
-            os.mkdir(path)
-            print("→ This folder currently contains no music! ")
-        break
+            try:
+                os.mkdir(path)
+                print("→ This folder currently contains no music! ")
+                break
+            except:
+                pass
 
 
 def validate_int():
