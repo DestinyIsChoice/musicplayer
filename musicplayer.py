@@ -20,6 +20,13 @@ import yt_dlp as youtube_dl
 path = ""
 
 
+def clean(string):
+    """Removes illegal characters from a string used as a file name.
+    """
+
+    return string.translate(str.maketrans('', '', '"/\\<>*:|?'))
+
+
 def get_path():
     """Validates a user input as a folder containing music.
 
@@ -33,14 +40,17 @@ def get_path():
         if os.path.isdir(path):
             if len(os.listdir(path)) == 0:
                 print("→ This folder currently contains no music! ")
-            break
+            return
         else:
-            try:
-                os.mkdir(path)
-                print("→ This folder currently contains no music! ")
-                break
-            except:
-                pass
+            if input("→ Would you like to create a new folder? (Y/n) ") == "n":
+                get_path()
+                return
+            else:
+                try:
+                    os.mkdir(path)
+                except:
+                    get_path()
+                return
 
 
 def validate_int():
@@ -56,6 +66,7 @@ def validate_int():
         # Allows user to select a song if selecting is cancelled.
         if validated_string == "-":
             main(input("→ "))
+            return
 
         # Validates user input as integer
         else:
@@ -66,13 +77,6 @@ def validate_int():
                 validated_string = input("→ ")
 
 
-def clean(string):
-    """Removes illegal characters from a string used as a file name.
-    """
-
-    return string.translate(str.maketrans('', '', '"/\\<>*:|?'))
-
-
 def get_audio(options, index, folder, name):
     """Downloads audio from YouTube.
 
@@ -80,8 +84,13 @@ def get_audio(options, index, folder, name):
 
     Uses ffmpeg to get mp3 file.
     """
+
+    filename = f"{folder}/{name}.mp3"
+    if os.path.isfile(filename) and name.split("/")[0] != "temp":
+        if input(f"→ Would you like to overwrite {name}? (Y/n) ") == "n":
+            return
     try:
-        os.remove(f"{folder}/{name}.mp3")
+        os.remove(filename)
     except:
         pass
 
@@ -91,6 +100,7 @@ def get_audio(options, index, folder, name):
 
     # Downloads audio from YouTube as mp3 using ffmpeg.
     with youtube_dl.YoutubeDL({
+        'no_warnings': True,
         'format': 'bestaudio/best',
         'outtmpl': f"{folder}/{name}",
         'postprocessors': [{
@@ -127,7 +137,7 @@ def allow_pausing(current):
     except:
         pausable = "_"
 
-    # Checks if user intends to pause music, skip song or select a new song.
+    # Checks if user intends to pause music, skip song, select a new folder or select a new song.
     if pausable == "/":
         pygame.mixer.music.pause()
         pausable = input("→ (Music paused!) ")
@@ -136,6 +146,9 @@ def allow_pausing(current):
             allow_pausing(current)
     elif pausable == "_":
         return
+    elif pausable == "#":
+        get_path()
+        main(input("→ "))
     else:
         main(pausable)
 
@@ -154,16 +167,19 @@ def main(initial_input):
     downloaded = False
     downloaded_name = ""
 
-    # Handles exiting the program.
+    # Handles exiting the program and selecting a new music folder.
     if initial_input == "\\":
         pygame.mixer.quit()
         try:
             shutil.rmtree(f"{path}/temp")
         except:
             pass
-        print("→ Exiting! ")
+        print("→ Exiting!")
         exit(0)
     elif initial_input == "_":
+        main(input("→ "))
+    elif initial_input == "#":
+        get_path()
         main(input("→ "))
 
     # Handles streaming an audio file from YouTube.
@@ -172,8 +188,11 @@ def main(initial_input):
             try:
                 youtube_results = json.loads(YoutubeSearch(input("→ "), max_results=10).to_json())
                 for number, video in enumerate(youtube_results["videos"]):
-                    print(f"→ {number + 1}.", video["title"])
-                input_number = validate_int()
+                    print(f"→ {number + 1}.", f"({video["channel"]}) {video["title"]}")
+                while True:
+                    input_number = validate_int()
+                    if input_number <= 10 and input_number >= 1:
+                        break
 
                 # Downloads temporary audio file from YouTube.
                 get_audio(youtube_results, input_number, path, "temp/file")
@@ -181,17 +200,23 @@ def main(initial_input):
 
             # Sends an error message and allows user to select a song if streaming fails.
             except:
-                print("→ Could not connect to server!")
-                main(input("→ "))
+                try:
+                    input()
+                    print("→ Cannot connect to server!")
+                    main(input("→ "))
+                except:
+                    return
 
         # Handles downloading an audio file from YouTube.
         elif initial_input == "'":
             try:
                 youtube_results = json.loads(YoutubeSearch(input("→ "), max_results=10).to_json())
                 for number, video in enumerate(youtube_results["videos"]):
-                    print(f"→ {number + 1}.", video["title"])
-                input_number = validate_int()
-
+                    print(f"→ {number + 1}.", f"({video["channel"]}) {video["title"]}")
+                while True:
+                    input_number = validate_int()
+                    if input_number <= 10 and input_number >= 1:
+                        break
                 # Downloads audio file from YouTube
                 title = clean(input("→ Please input a name for this song!\n→ "))
                 get_audio(youtube_results, input_number, path, title)
@@ -199,8 +224,12 @@ def main(initial_input):
 
             # Sends an error message and allows user to select a song if downloading fails.
             except:
-                print("→ Could not connect to server!")
-                main(input("→ "))
+                try:
+                    input()
+                    print("→ Cannot connect to server!")
+                    main(input("→ "))
+                except:
+                    return
 
         # Creates variables for creating list of songs to be played.
         all_songs = []
