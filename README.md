@@ -7,10 +7,12 @@ In order to run the music player outside of Termux:
         git clone https://github.com/DestinyIsChoice/musicplayer.git
         pip install inputimeout  
         pip install mutagen  
+        pip install pytube  
+        pip install pytubefix  
         pip install pygame  
         pip install youtube-search  
-        pip install yt_dlp
-        python musicplayer/musicplayer.py
+        pip install yt_dlp  
+        python musicplayer/musicplayer.py  
 
 * Normal use:
 
