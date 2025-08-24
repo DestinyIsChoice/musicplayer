@@ -180,7 +180,7 @@ def main(initial_input):
     downloaded = False
     downloaded_name = ""
 
-    # Handles exiting the program and selecting a new music folder.
+    # Handles exiting the program, selecting a new music folder and deleting a song.
     if initial_input == "\\":
         pygame.mixer.quit()
         try:
@@ -195,6 +195,16 @@ def main(initial_input):
         main(input("→ "))
     elif initial_input == "#":
         get_path()
+        main(input("→ "))
+    elif initial_input == "=":
+        try:
+            os.remove(f"{path}/{input("→ ")}.mp3")
+        except FileNotFoundError:
+            print("→ This file does not exist!")
+        except WindowsError:
+            print("→ Cannot delete this file!")
+        except Exception as e:
+            print(f"An error occurred: {e}")
         main(input("→ "))
 
     # Handles streaming an audio file from YouTube.
