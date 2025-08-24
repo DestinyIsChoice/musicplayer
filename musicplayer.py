@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from os import environ
 import random
@@ -10,13 +11,16 @@ import sys
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 
 
-from inputimeout import inputimeout
+from inputimeout import inputimeout, TimeoutOccurred
 from mutagen.mp3 import MP3
 import pygame
+from pytube import Playlist
+from pytubefix import YouTube
 from youtube_search import YoutubeSearch
 import yt_dlp as youtube_dl
 
-
+# noinspection SpellCheckingInspection
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 path = ""
 
 
@@ -48,8 +52,10 @@ def get_path():
             else:
                 try:
                     os.mkdir(path)
-                except:
+                except OSError:
                     get_path()
+                except Exception as e:
+                    print(f"An error occurred: {e}")
                 return
 
 
@@ -66,18 +72,20 @@ def validate_int():
         # Allows user to select a song if selecting is cancelled.
         if validated_string == "-":
             main(input("→ "))
-            return
+            return None
 
         # Validates user input as integer
         else:
             try:
                 validated_string = int(validated_string)
                 return validated_string
-            except:
+            except ValueError:
                 validated_string = input("→ ")
+            except Exception as e:
+                print(f"An error occurred: {e}")
 
-
-def get_audio(options, index, folder, name):
+# noinspection SpellCheckingInspection
+def get_audio(video_id, folder, name):
     """Downloads audio from YouTube.
 
     Uses silent output.
@@ -91,8 +99,10 @@ def get_audio(options, index, folder, name):
             return
     try:
         os.remove(filename)
-    except:
+    except FileNotFoundError:
         pass
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
     # Silences output by redirecting stdout to nothing.
     old_stdout = sys.stdout
@@ -109,7 +119,7 @@ def get_audio(options, index, folder, name):
             'preferredquality': '192'
         }]
     }) as ydl:
-        ydl.download([f"https://www.youtube.com/watch?v={options["videos"][index - 1]["id"]}"])
+        ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
 
     # Redirects stdout back to command line.
     sys.stdout = old_stdout
@@ -123,19 +133,22 @@ def allow_pausing(current):
     Will call itself again in order to allow pausing if music is unpaused.
     """
 
+    pausable = ""
     try:
         audio = MP3(current)
 
-        # Checks if music is being streamed
+        # Checks if music is being streamed.
         if (((current.split("/"))[(len(current.split("/"))) - 1]).replace(".mp3", "")) == "file":
             print("→ Now playing streamed music!")
         else:
             print(f"→ Now playing {((current.split("/"))[(len(current.split("/"))) - 1]).replace(".mp3", "")}!")
 
-        # Allows for user input
+        # Allows for user input.
         pausable = inputimeout(prompt="→ ", timeout=(audio.info.length - (pygame.mixer.music.get_pos() / 1000)))
-    except:
+    except TimeoutOccurred:
         pausable = "_"
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
     # Checks if user intends to pause music, skip song, select a new folder or select a new song.
     if pausable == "/":
@@ -172,8 +185,10 @@ def main(initial_input):
         pygame.mixer.quit()
         try:
             shutil.rmtree(f"{path}/temp")
-        except:
+        except FileNotFoundError:
             pass
+        except Exception as e:
+            print(f"An error occurred: {e}")
         print("→ Exiting!")
         exit(0)
     elif initial_input == "_":
@@ -191,21 +206,24 @@ def main(initial_input):
                     print(f"→ {number + 1}.", f"({video["channel"]}) {video["title"]}")
                 while True:
                     input_number = validate_int()
-                    if input_number <= 10 and input_number >= 1:
+                    if 10 >= input_number >= 1:
                         break
 
                 # Downloads temporary audio file from YouTube.
-                get_audio(youtube_results, input_number, path, "temp/file")
+                get_audio(youtube_results["videos"][input_number - 1]["id"], path, "temp/file")
                 downloaded = True
 
             # Sends an error message and allows user to select a song if streaming fails.
-            except:
+            except Exception as e:
+                logging.debug(e)
                 try:
-                    input()
+                    downloaded = False
                     print("→ Cannot connect to server!")
                     main(input("→ "))
-                except:
+                except ValueError:
                     return
+                except Exception as e:
+                    print(f"An error occurred: {e}")
 
         # Handles downloading an audio file from YouTube.
         elif initial_input == "'":
@@ -215,21 +233,61 @@ def main(initial_input):
                     print(f"→ {number + 1}.", f"({video["channel"]}) {video["title"]}")
                 while True:
                     input_number = validate_int()
-                    if input_number <= 10 and input_number >= 1:
+                    if 10 >= input_number >= 1:
                         break
-                # Downloads audio file from YouTube
+
+                # Gets song names from user.
                 title = clean(input("→ Please input a name for this song!\n→ "))
-                get_audio(youtube_results, input_number, path, title)
+
+                # Downloads audio file from YouTube.
+                get_audio(youtube_results["videos"][input_number - 1]["id"], path, title)
                 downloaded_name = f"{title}.mp3"
 
             # Sends an error message and allows user to select a song if downloading fails.
-            except:
+            except Exception as e:
+                logging.debug(e)
                 try:
-                    input()
+                    downloaded = False
                     print("→ Cannot connect to server!")
                     main(input("→ "))
-                except:
+                except ValueError:
                     return
+                except Exception as e:
+                    print(f"An error occurred: {e}")
+
+
+        # Handles downloading a playlist fron YouTube.
+        elif initial_input == '"':
+            playlist_url = input("→ ")
+            try:
+                playlist = Playlist(playlist_url)
+                youtube_titles = []
+                selected_titles = []
+                for url in playlist.video_urls:
+                    youtube_titles.append(YouTube(url).title)
+
+                # Gets song names from user.
+                for youtube_title in youtube_titles:
+                    selected_title = input(f"→ Please input a name for {youtube_title}!\n→ ")
+                    if selected_title == "-":
+                        main(input("→ "))
+                    selected_titles.append(clean(selected_title))
+
+                # Downloads audio files from YouTube.
+                for number, url in enumerate(playlist.video_urls):
+                    get_audio(str(url).split("v=")[1], path, selected_titles[number])
+
+            # Sends an error message and allows user to select a song if downloading fails.
+            except Exception as e:
+                logging.debug(e)
+                try:
+                    downloaded = False
+                    print("→ Cannot connect to server!")
+                    main(input("→ "))
+                except ValueError:
+                    return
+                except Exception as e:
+                    print(f"An error occurred: {e}")
 
         # Creates variables for creating list of songs to be played.
         all_songs = []
@@ -264,11 +322,13 @@ def main(initial_input):
         if len(intended_songs) > 0:
             if len(intended_songs) > 1:
                 if (downloaded == False) and (downloaded_name == ""):
+                    no_index = False
                     try:
                         int((initial_input.split(" "))[1])
-                        no_index = False
-                    except:
+                    except (IndexError, ValueError):
                         no_index = True
+                    except Exception as e:
+                        print(f"An error occurred: {e}")
                     if (len(initial_input.split(" ")) == 1) or no_index:
                         for number, playable_song in enumerate(intended_songs):
                             print(f"→ {number + 1}.", playable_song[:-4])
@@ -289,18 +349,27 @@ def main(initial_input):
                     all_songs.insert(0, downloaded_name)
                 elif not downloaded:
                     try:
+
+                        # noinspection PyUnboundLocalVariable
                         specific_song = intended_songs[index - 1]
                         all_songs.remove(specific_song)
                         all_songs.insert(0, specific_song)
-                    except:
+                    except IndexError:
                         print("→ This song cannot be played!")
                         main(input("→ "))
+                    except Exception as e:
+                        print(f"An error occurred: {e}")
                 else:
                     all_songs.insert(0, "temp/file.mp3")
 
                 # Plays songs in list of songs to be played.
                 for playable_song in all_songs:
-                    pygame.mixer.music.load(f"{path}/{playable_song}")
+                    try:
+                        pygame.mixer.music.load(f"{path}/{playable_song}")
+                    except pygame.error:
+                        return
+                    except Exception as e:
+                        print(f"An error occurred: {e}")
                     pygame.mixer.music.play()
 
                     # Allows user to pause music.
@@ -332,7 +401,12 @@ def main(initial_input):
 
                 # Plays songs in list of songs to be played.
                 for playable_song in all_songs:
-                    pygame.mixer.music.load(f"{path}/{playable_song}")
+                    try:
+                        pygame.mixer.music.load(f"{path}/{playable_song}")
+                    except pygame.error:
+                        return
+                    except Exception as e:
+                        print(f"An error occurred: {e}")
                     pygame.mixer.music.play()
 
                     # Allows user to pause music.
@@ -365,7 +439,7 @@ def main(initial_input):
             intended_songs = []
             for individual_input in song.split("_"):
                 input_characters = list((individual_input.split(" "))[0])
-                if input_characters == []:
+                if not input_characters:
                     print("→ Cannot play this song!\n→ ")
                     main(input("→ "))
                 elif input_characters[0] != "-":
@@ -394,11 +468,13 @@ def main(initial_input):
                     # Prompts user for which song to play if multiple songs match user input.
                     if len(intended_songs) > 0:
                         if len(intended_songs) > 1:
+                            no_index = False
                             try:
                                 int((individual_input.split(" "))[1])
-                                no_index = False
-                            except:
+                            except (IndexError, ValueError):
                                 no_index = True
+                            except Exception as e:
+                                print(f"An error occurred: {e}")
                             if no_index:
                                 for number, playable_song in enumerate(intended_songs):
                                     print(f"→ {number + 1}.", playable_song[:-4])
@@ -423,12 +499,13 @@ def main(initial_input):
                         name = youtube_results["videos"][0]["title"]
                         print(f"→ Now downloading {name}! ")
                         title = f"temp/{clean(name)}"
-                        get_audio(youtube_results, 0, path, title)
+                        get_audio(youtube_results["videos"][0]["id"], path, title)
                         all_songs.insert(counter, f"{title}.mp3")
 
                     # Sends an error message and allows user to select a song if downloading fails.
-                    except:
+                    except Exception as e:
                         print("→ Could not connect to server!")
+                        logging.debug(e)
                         main(input("→ "))
 
             # Moves onto next position in list of songs to be played.
@@ -441,7 +518,12 @@ def main(initial_input):
 
         # Plays songs in list of songs to be played.
         for playable_song in all_songs:
-            pygame.mixer.music.load(f"{path}/{playable_song}")
+            try:
+                pygame.mixer.music.load(f"{path}/{playable_song}")
+            except pygame.error:
+                return
+            except Exception as e:
+                print(f"An error occurred: {e}")
             pygame.mixer.music.play()
             allow_pausing(f"{path}/{playable_song}")
         get_path()
@@ -450,5 +532,3 @@ def main(initial_input):
 
 get_path()
 main(input("→ "))
-
-
