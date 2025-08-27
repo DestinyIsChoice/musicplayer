@@ -338,7 +338,6 @@ def main(initial_input):
             if counter == len(list(input_characters)):
                 intended_songs.append(song)
         intended_songs = [song_path for song_path in intended_songs if os.path.isfile(f"{path}/{song_path}")]
-        print(intended_songs)
 
         # Prompts user for which song to play if multiple songs match user input.
         if len(intended_songs) > 0:
