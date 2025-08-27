@@ -14,8 +14,7 @@ environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 from inputimeout import inputimeout, TimeoutOccurred
 from mutagen.mp3 import MP3
 import pygame
-from pytube import Playlist
-from pytubefix import YouTube
+from pytubefix import YouTube, Playlist
 from youtube_search import YoutubeSearch
 import yt_dlp as youtube_dl
 
@@ -285,7 +284,9 @@ def main(initial_input):
 
                 # Downloads audio files from YouTube.
                 for number, url in enumerate(playlist.video_urls):
-                    get_audio(str(url).split("v=")[1], path, selected_titles[number])
+                    song_name = selected_titles[number]
+                    print(f"→ Now downloading {song_name}! ")
+                    get_audio(str(url).split("v=")[1], path, song_name)
 
             # Sends an error message and allows user to select a song if downloading fails.
             except Exception as e:
