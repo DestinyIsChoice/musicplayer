@@ -8,7 +8,6 @@ In order to run the music player outside of Termux:
         pip install inputimeout  
         pip install mutagen  
         pip install pygame  
-        pip install pytube  
         pip install pytubefix  
         pip install youtube-search  
         pip install yt_dlp  
