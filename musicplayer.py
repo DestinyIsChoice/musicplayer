@@ -522,7 +522,6 @@ def main(initial_input):
 
                     # Sends an error message and allows user to select a song if downloading fails.
                     except Exception as e:
-                        print(e)
                         print("→ Cannot connect to server!")
                         logging.debug(e)
                         main(input("→ "))
