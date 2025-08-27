@@ -4,7 +4,7 @@ In order to run the music player outside of Termux:
 
 * First use setup:
 
-   [Install Git](https://git-scm.com/downloads/win) if you have not already. Then, in Git Bash:  
+   [Install Git](https://git-scm.com/downloads) if you have not already. Then, in Git Bash:  
 
       git clone https://github.com/DestinyIsChoice/musicplayer.git  
       bash musicplayer/musicstartup.sh  
