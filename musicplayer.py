@@ -100,6 +100,9 @@ def get_audio(video_id, folder, name):
         os.remove(filename)
     except FileNotFoundError:
         pass
+    except WindowsError:
+        pygame.mixer.quit()
+        get_audio(video_id, folder, name)
     except Exception as e:
         print(f"An error occurred: {e}")
 
@@ -519,7 +522,8 @@ def main(initial_input):
 
                     # Sends an error message and allows user to select a song if downloading fails.
                     except Exception as e:
-                        print("→ Could not connect to server!")
+                        print(e)
+                        print("→ Cannot connect to server!")
                         logging.debug(e)
                         main(input("→ "))
 
