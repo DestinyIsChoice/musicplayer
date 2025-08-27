@@ -288,6 +288,9 @@ def main(initial_input):
                     print(f"→ Now downloading {song_name}! ")
                     get_audio(str(url).split("v=")[1], path, song_name)
 
+                # Allows user to select a song to play.
+                main(input("→ "))
+
             # Sends an error message and allows user to select a song if downloading fails.
             except Exception as e:
                 logging.debug(e)
@@ -541,5 +544,6 @@ def main(initial_input):
         main(input("→ "))
 
 
+# Prompts user for music folder before allowing user to select songs.
 get_path()
 main(input("→ "))
