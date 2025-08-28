@@ -319,7 +319,7 @@ def main(initial_input):
                     print(f"An error occurred: {e}")
 
 
-        # Handles downloading a playlist fron YouTube.
+        # Handles downloading a playlist from YouTube.
         elif initial_input == '"':
             playlist_url = input("→ ")
             try:
@@ -412,6 +412,7 @@ def main(initial_input):
                     all_songs.insert(0, downloaded_name)
                 elif not downloaded:
                     try:
+                        random.shuffle(all_songs)
 
                         # noinspection PyUnboundLocalVariable
                         specific_song = intended_songs[index - 1]
