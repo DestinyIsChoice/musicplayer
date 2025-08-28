@@ -162,22 +162,6 @@ def allow_pausing(current):
                 allow_pausing(current)
         elif pausable == "_":
             return
-        elif pausable == "#":
-            get_path()
-            main(input("→ "))
-        elif pausable[0] == "$":
-            try:
-                pausable = float(pausable[1:]) / 100
-                if 0 <= pausable <= 1:
-                    pygame.mixer.music.set_volume(pausable)
-                else:
-                    print("→ Volume must be set to a number between 0 and 100!")
-                allow_pausing(current)
-            except ValueError:
-                print("→ Volume must be set to a number between 0 and 100!")
-                allow_pausing(current)
-            except Exception as e:
-                print(f"An error occurred: {e}")
         else:
             main(pausable)
     except IndexError:
@@ -199,6 +183,7 @@ def main(initial_input):
     global path
     downloaded = False
     downloaded_name = ""
+    titles = []
 
     # Handles exiting the program, selecting a new music folder, changing the volume, renaming a song and deleting a song. # noqa
     try:
@@ -217,7 +202,7 @@ def main(initial_input):
         elif initial_input == "#":
             get_path()
             main(input("→ "))
-        elif initial_input[0] == "$":
+        elif initial_input[0] == "%":
             try:
                 initial_input = float(initial_input[1:]) / 100
                 if 0 <= initial_input <= 1:
@@ -318,6 +303,32 @@ def main(initial_input):
                 except Exception as e:
                     print(f"An error occurred: {e}")
 
+        # Handles streaming a playlist from YouTube.
+        elif initial_input[0] == "$":
+            playlist_url = input("→ ")
+            try:
+                playlist = Playlist(playlist_url)
+                titles = []
+                for url in playlist.video_urls:
+                    titles.append(f"temp/{clean(YouTube(url).title)}")
+
+                # Downloads audio files from YouTube.
+                for number, url in enumerate(playlist.video_urls):
+                    song_name = titles[number]
+                    print(f"→ Now downloading {song_name.split("temp/")[1]}! ")
+                    get_audio(str(url).split("v=")[1], path, song_name)
+
+            # Sends an error message and allows user to select a song if downloading fails.
+            except Exception as e:
+                logging.debug(e)
+                try:
+                    downloaded = False
+                    print("→ Cannot connect to server!")
+                    main(input("→ "))
+                except ValueError:
+                    return
+                except Exception as e:
+                    print(f"An error occurred: {e}")
 
         # Handles downloading a playlist from YouTube.
         elif initial_input == '"':
@@ -424,6 +435,7 @@ def main(initial_input):
                     except Exception as e:
                         print(f"An error occurred: {e}")
                 else:
+                    random.shuffle(all_songs)
                     all_songs.insert(0, "temp/file.mp3")
 
                 # Plays songs in list of songs to be played.
@@ -482,12 +494,26 @@ def main(initial_input):
                         allow_pausing(f"{path}/{playable_song}")
                 get_path()
                 main(input("→ "))
+        elif titles:
+            random.shuffle(all_songs)
+            titles = titles[::-1]
+            for title in titles:
+                all_songs.insert(0, title)
+            pygame.mixer.init()
+            for playable_song in all_songs:
+                try:
+                    pygame.mixer.music.load(f"{path}/{playable_song}.mp3")
+                except pygame.error:
+                    return
+                except Exception as e:
+                    print(f"An error occurred: {e}")
+                pygame.mixer.music.play()
+                allow_pausing(f"{path}/{playable_song}.mp3")
 
         # Allows user to select music to play if none is found.
-        else:
-            if (initial_input != "-") and (initial_input != "'"):
-                print("→ No music found!")
-            main(input("→ "))
+        if (initial_input != "-") and (initial_input != "'"):
+            print("→ No music found!")
+        main(input("→ "))
 
     # Creates shuffled list of music to be played.
     else:
