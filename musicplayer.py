@@ -153,32 +153,37 @@ def allow_pausing(current):
         print(f"An error occurred: {e}")
 
     # Checks if user intends to pause music, skip song, select a new folder, change the volume or select a new song.
-    if pausable == "/":
-        pygame.mixer.music.pause()
-        pausable = input("→ (Music paused!) ")
-        if pausable:
-            pygame.mixer.music.unpause()
-            allow_pausing(current)
-    elif pausable == "_":
-        return
-    elif pausable == "#":
-        get_path()
-        main(input("→ "))
-    elif pausable[0] == "$":
-        try:
-            pausable = float(pausable[1:]) / 100
-            if 0 <= pausable <= 1:
-                pygame.mixer.music.set_volume(pausable)
-            else:
+    try:
+        if pausable == "/":
+            pygame.mixer.music.pause()
+            pausable = input("→ (Music paused!) ")
+            if pausable:
+                pygame.mixer.music.unpause()
+                allow_pausing(current)
+        elif pausable == "_":
+            return
+        elif pausable == "#":
+            get_path()
+            main(input("→ "))
+        elif pausable[0] == "$":
+            try:
+                pausable = float(pausable[1:]) / 100
+                if 0 <= pausable <= 1:
+                    pygame.mixer.music.set_volume(pausable)
+                else:
+                    print("→ Volume must be set to a number between 0 and 100!")
+                allow_pausing(current)
+            except ValueError:
                 print("→ Volume must be set to a number between 0 and 100!")
-            allow_pausing(current)
-        except ValueError:
-            print("→ Volume must be set to a number between 0 and 100!")
-            allow_pausing(current)
-        except Exception as e:
-            print(f"An error occurred: {e}")
-    else:
+                allow_pausing(current)
+            except Exception as e:
+                print(f"An error occurred: {e}")
+        else:
+            main(pausable)
+    except IndexError:
         main(pausable)
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 def main(initial_input):
@@ -196,59 +201,64 @@ def main(initial_input):
     downloaded_name = ""
 
     # Handles exiting the program, selecting a new music folder, changing the volume, renaming a song and deleting a song. # noqa
-    if initial_input == "\\":
-        pygame.mixer.quit()
-        try:
-            shutil.rmtree(f"{path}/temp")
-        except FileNotFoundError:
-            pass
-        except Exception as e:
-            print(f"An error occurred: {e}")
-        print("→ Exiting!")
-        exit(0)
-    elif initial_input == "_":
-        main(input("→ "))
-    elif initial_input == "#":
-        get_path()
-        main(input("→ "))
-    elif initial_input[0] == "$":
-        try:
-            initial_input = float(initial_input[1:]) / 100
-            if 0 <= initial_input <= 1:
-                pygame.mixer.music.set_volume(initial_input)
-            else:
+    try:
+        if initial_input == "\\":
+            pygame.mixer.quit()
+            try:
+                shutil.rmtree(f"{path}/temp")
+            except FileNotFoundError:
+                pass
+            except Exception as e:
+                print(f"An error occurred: {e}")
+            print("→ Exiting!")
+            exit(0)
+        elif initial_input == "_":
+            main(input("→ "))
+        elif initial_input == "#":
+            get_path()
+            main(input("→ "))
+        elif initial_input[0] == "$":
+            try:
+                initial_input = float(initial_input[1:]) / 100
+                if 0 <= initial_input <= 1:
+                    pygame.mixer.music.set_volume(initial_input)
+                else:
+                    print("→ Volume must be set to a number between 0 and 100!")
+                main(input("→ "))
+            except ValueError:
                 print("→ Volume must be set to a number between 0 and 100!")
+                main(input("→ "))
+            except pygame.error:
+                pygame.mixer.init()
+                pygame.mixer.music.set_volume(initial_input)
+                main(input("→ "))
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                main(input("→ "))
+        elif initial_input == "+":
+            try:
+                os.rename(f"{path}/{input("→ ")}.mp3", f"{path}/{input("→ ")}.mp3")
+            except FileNotFoundError:
+                print("→ This song does not exist!")
+            except WindowsError:
+                print("→ Cannot rename this song!")
+            except Exception as e:
+                print(f"An error occurred: {e}")
             main(input("→ "))
-        except ValueError:
-            print("→ Volume must be set to a number between 0 and 100!")
+        elif initial_input == "=":
+            try:
+                os.remove(f"{path}/{input("→ ")}.mp3")
+            except FileNotFoundError:
+                print("→ This song does not exist!")
+            except WindowsError:
+                print("→ Cannot delete this song!")
+            except Exception as e:
+                print(f"An error occurred: {e}")
             main(input("→ "))
-        except pygame.error:
-            pygame.mixer.init()
-            pygame.mixer.music.set_volume(initial_input)
-            main(input("→ "))
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            main(input("→ "))
-    elif initial_input == "+":
-        try:
-            os.rename(f"{path}/{input("→ ")}.mp3", f"{path}/{input("→ ")}.mp3")
-        except FileNotFoundError:
-            print("→ This song does not exist!")
-        except WindowsError:
-            print("→ Cannot rename this song!")
-        except Exception as e:
-            print(f"An error occurred: {e}")
-        main(input("→ "))
-    elif initial_input == "=":
-        try:
-            os.remove(f"{path}/{input("→ ")}.mp3")
-        except FileNotFoundError:
-            print("→ This song does not exist!")
-        except WindowsError:
-            print("→ Cannot delete this song!")
-        except Exception as e:
-            print(f"An error occurred: {e}")
-        main(input("→ "))
+    except IndexError:
+        pass
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
     # Handles streaming a song from YouTube.
     if initial_input == initial_input.replace("_", ""):
