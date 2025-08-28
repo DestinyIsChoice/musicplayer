@@ -498,17 +498,19 @@ def main(initial_input):
             random.shuffle(all_songs)
             titles = titles[::-1]
             for title in titles:
-                all_songs.insert(0, title)
+                all_songs.insert(0, f"{title}.mp3")
             pygame.mixer.init()
             for playable_song in all_songs:
                 try:
-                    pygame.mixer.music.load(f"{path}/{playable_song}.mp3")
+                    pygame.mixer.music.load(f"{path}/{playable_song}")
                 except pygame.error:
                     return
                 except Exception as e:
                     print(f"An error occurred: {e}")
                 pygame.mixer.music.play()
-                allow_pausing(f"{path}/{playable_song}.mp3")
+                allow_pausing(f"{path}/{playable_song}")
+            get_path()
+            main(input("→ "))
 
         # Allows user to select music to play if none is found.
         if (initial_input != "-") and (initial_input != "'"):
