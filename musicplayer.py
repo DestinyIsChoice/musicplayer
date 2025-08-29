@@ -162,6 +162,20 @@ def allow_pausing(current):
                 allow_pausing(current)
         elif pausable == "_":
             return
+        elif pausable[0] == "%":
+            try:
+                pausable = float(pausable[1:]) / 100
+                if 0 <= pausable <= 1:
+                    pygame.mixer.music.set_volume(pausable)
+                else:
+                    print("→ Volume must be set to a number between 0 and 100!")
+                allow_pausing(current)
+            except ValueError:
+                print("→ Volume must be set to a number between 0 and 100!")
+                allow_pausing(current)
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                main(input("→ "))
         else:
             main(pausable)
     except IndexError:
