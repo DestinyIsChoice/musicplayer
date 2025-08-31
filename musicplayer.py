@@ -317,7 +317,7 @@ def main(initial_input):
                     print(f"An error occurred: {e}")
 
         # Handles streaming a playlist from YouTube.
-        elif initial_input[0] == "$":
+        elif initial_input == "$":
             playlist_url = input("→ ")
             try:
                 playlist = Playlist(playlist_url)
