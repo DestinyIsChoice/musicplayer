@@ -24,8 +24,7 @@ path = ""
 
 
 def clean(string):
-    """Removes illegal characters from a string used as a file name.
-    """
+    """Removes illegal characters from a string used as a file name."""
 
     return string.translate(str.maketrans('', '', '"/\\<>*:|?'))
 
