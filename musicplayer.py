@@ -94,7 +94,7 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
 
     filename = f"{folder}/{name}.mp3"
     if os.path.isfile(filename) and name.split("/")[0] != "temp":
-        if input(f"→ Would you like to overwrite {name}? (Y/n) ") == "n":
+        if input(f"→ Would you like to overwrite {name.split("/")[-1]}? (Y/n) ") == "n":
             return
     try:
         os.remove(filename)
@@ -255,10 +255,18 @@ def main(initial_input: str) -> None:
                 print(f"An error occurred: {e}")
             main(input("→ "))
         elif initial_input == "=":
+            remove = input("→ ")
             try:
-                os.remove(f"{path}/{input("→ ")}.mp3")
+                os.remove(f"{path}/{remove}.mp3")
             except FileNotFoundError:
-                print("→ This song does not exist!")
+                try:
+                    shutil.rmtree(f"{path}/{remove}")
+                except FileNotFoundError:
+                    print("→ Does not exist!")
+                except WindowsError:
+                    print("→ Cannot delete!")
+                except Exception as e:
+                    print(f"An error occurred: {e}")
             except WindowsError:
                 print("→ Cannot delete this song!")
             except Exception as e:
@@ -530,6 +538,7 @@ def main(initial_input: str) -> None:
                 # Adds streamed and downloaded songs
                 # to list of songs to be played.
                 if downloaded_name != "":
+                    random.shuffle(all_songs)
                     all_songs.insert(0, downloaded_name)
                 elif not downloaded:
                     try:
