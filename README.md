@@ -25,6 +25,8 @@ In order to run the music player in Termux:
       git clone https://github.com/DestinyIsChoice/musicplayer.git
       bash musicplayer/musicstartup.sh
 
+  Allow Termux to run in the background.
+
 * Normal use:
 
       bash musicplayer/musicstartup.sh
