@@ -22,7 +22,7 @@ if [ "$( pgrep -c com.termux )" -gt 0 ]; then
     cd musicplayer || return
     clear
     export PYGAME_HIDE_SUPPORT_PROMPT="1"
-    python "musicplayer/musicplayer.py"
+    python musicplayer.py
 else
 
     # Install dependencies.
@@ -32,5 +32,5 @@ else
     cd musicplayer || return
     clear
     export PYGAME_HIDE_SUPPORT_PROMPT="1"
-    python musicplayer/musicplayer.py
+    python musicplayer.py
 fi
