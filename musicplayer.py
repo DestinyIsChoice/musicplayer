@@ -37,7 +37,7 @@ def get_path() -> None:
     while True:
         path = input("→ Please input the path to your music folder!\n→ ")
         if os.path.isdir(path):
-            if len(os.listdir(path)) == 0:
+            if not os.listdir(path):
                 print("→ This folder currently contains no music! ")
             return
         else:
@@ -209,7 +209,7 @@ def main(initial_input: str) -> None:
     titles = []
 
     # Handles exiting the program, selecting a new music folder,
-    # changing the volume, renaming a song and deleting a song. # noqa
+    # changing the volume, renaming a song and deleting a song.
     try:
         if initial_input == "\\":
             pygame.mixer.quit()
@@ -310,7 +310,7 @@ def main(initial_input: str) -> None:
                         break
 
                 # Gets song names from user.
-                title = clean(input("→ Please input a name for this song!\n→ "))
+                title = clean(input("→ Please input a title for this song!\n→ "))
 
                 # Downloads audio file from YouTube.
                 get_audio(youtube_results["videos"][input_number - 1]["id"], path, title)
@@ -335,8 +335,7 @@ def main(initial_input: str) -> None:
             try:
                 playlist = Playlist(playlist_url)
                 titles = []
-                for url in playlist.video_urls:
-                    titles.append(f"temp/{clean(YouTube(url).title)}")
+                titles = [f"temp/{clean(YouTube(url).title)}" for url in playlist.video_urls]
 
                 # Downloads audio files from YouTube.
                 for number, url in enumerate(playlist.video_urls):
@@ -362,22 +361,22 @@ def main(initial_input: str) -> None:
             playlist_url = input("→ ")
             try:
                 playlist = Playlist(playlist_url)
-                youtube_titles = []
                 selected_titles = []
-                for url in playlist.video_urls:
-                    youtube_titles.append(YouTube(url).title)
+                youtube_titles = [YouTube(url).title for url in playlist.video_urls]
 
                 # Gets song names from user.
+                playlist_path = input(f"→ Please input a title for {playlist.title}!\n→ ")
                 for youtube_title in youtube_titles:
-                    selected_title = input(f"→ Please input a name for {youtube_title}!\n→ ")
+                    selected_title = input(f"→ Please input a title for {youtube_title}!\n→ ")
                     if selected_title == "-":
                         main(input("→ "))
-                    selected_titles.append(clean(selected_title))
+                        return
+                    selected_titles.append(f"{clean(playlist_path)}/{clean(selected_title)}")
 
                 # Downloads audio files from YouTube.
                 for number, url in enumerate(playlist.video_urls):
                     song_name = selected_titles[number]
-                    print(f"→ Now downloading {song_name}! ")
+                    print(f"→ Now downloading {song_name.split("/")[-1]}! ")
                     get_audio(str(url).split("v=")[1], path, song_name)
 
                 # Allows user to select a song to play.
@@ -396,6 +395,85 @@ def main(initial_input: str) -> None:
                 except Exception as e:
                     print(f"An error occurred: {e}")
 
+        # Handles playing an album.
+        elif initial_input == ":":
+            albums = []
+            intended_albums = []
+
+            # Gets all albums in folder.
+            for root, dirs, files in os.walk(path):
+                album_name = os.path.split(root)[-1]
+                if album_name != "temp" and files and not dirs:
+                    albums.append(album_name)
+            if not albums:
+                print("→ No albums found!")
+
+            # Finds characters to match to user input.
+            else:
+                initial_input = input("→ ")
+                input_characters = list((initial_input.split(" "))[0])
+                for album in albums:
+                    album_words = album.split(" ")
+                    if len(album_words) > 1:
+                        album_characters = [((list(word))[0]).lower() for word in album_words]
+                    else:
+                        album_characters = [character.lower() for character in list(album)]
+
+                    # Checks if user input matches song.
+                    counter = 0
+                    for letter in list(input_characters):
+                        if letter in album_characters:
+                            counter += 1
+                    if counter == len(list(input_characters)):
+                        intended_albums.append(album)
+
+                # Prompts user for which song to play
+                # if multiple songs match user input.
+                if intended_albums:
+                    if len(intended_albums) > 1:
+                        no_index = False
+                        try:
+                            int((initial_input.split(" "))[1])
+                        except (IndexError, ValueError):
+                            no_index = True
+                        except Exception as e:
+                            print(f"An error occurred: {e}")
+                        if (len(initial_input.split(" ")) == 1) or no_index:
+                            for number, playable_album in enumerate(intended_albums):
+                                print(f"→ {number + 1}.", playable_album)
+                            index = validate_int()
+
+                        # Accounts for if user has already selected
+                        # which song to play
+                        # if multiple songs match input.
+                        else:
+                            index = int((initial_input.split(" "))[1])
+                    else:
+                        index = 0
+                else:
+                    print("→ No albums found!")
+                    main(input("→ "))
+                    return
+
+                # noinspection PyUnboundLocalVariable
+                album_path = intended_albums[index - 1]
+                album_songs = [song for song in os.listdir(f"{path}/{album_path}")
+                               if song[-4:] == ".mp3"]
+                album_songs.sort(key=lambda x: os.path.getmtime(f"{path}/{album_path}/{x}"))
+                pygame.mixer.init()
+
+                # Plays all songs in selected album.
+                for playable_song in album_songs:
+                    try:
+                        pygame.mixer.music.load(f"{path}/{album_path}/{playable_song}")
+                    except pygame.error:
+                        return
+                    except Exception as e:
+                        print(f"An error occurred: {e}")
+                    pygame.mixer.music.play()
+                    allow_pausing(f"{path}/{album_path}/{playable_song}")
+            main(input("→ "))
+
         # Creates variables for creating list of songs to be played.
         all_songs = []
         intended_songs = [""] if downloaded else []
@@ -404,11 +482,9 @@ def main(initial_input: str) -> None:
         # Finds characters to match to user input.
         for song in os.listdir(path):
             all_songs.append(song)
-            song_characters = []
             song_words = song.split(" ")
             if len(song_words) > 1:
-                for word in song_words:
-                    song_characters.append(((list(word))[0]).lower())
+                song_characters = [((list(word))[0]).lower() for word in song_words]
             else:
                 song_characters = list((song.split(".mp3"))[0])
             song_characters = [character.lower() for character in song_characters]
@@ -425,7 +501,7 @@ def main(initial_input: str) -> None:
 
         # Prompts user for which song to play
         # if multiple songs match user input.
-        if len(intended_songs) > 0:
+        if intended_songs:
             if len(intended_songs) > 1:
                 if (not downloaded) and (downloaded_name == ""):
                     no_index = False
@@ -556,9 +632,7 @@ def main(initial_input: str) -> None:
 
     # Creates shuffled list of music to be played.
     else:
-        all_songs = []
-        for song in os.listdir(path):
-            all_songs.append(song)
+        all_songs = [song for song in os.listdir(path)]
         random.shuffle(all_songs)
 
         # Handles each song in user input separately.
@@ -572,14 +646,12 @@ def main(initial_input: str) -> None:
                     main(input("→ "))
                 elif input_characters[0] != "-":
                     for inputs in os.listdir(path):
-                        song_characters = []
                         song_words = inputs.split(" ")
                         if len(song_words) > 1:
-                            for word in song_words:
-                                song_characters.append(((list(word))[0]).lower())
+                            song_characters = [((list(word))[0]).lower() for word in song_words]
                         else:
                             song_characters = list((inputs.split(".mp3"))[0])
-                        song_characters = [s.lower() for s in song_characters]
+                        song_characters = [character.lower() for character in song_characters]
                         matching_characters = 0
                         for letter in list(input_characters):
                             if letter in song_characters:
@@ -594,7 +666,7 @@ def main(initial_input: str) -> None:
 
                     # Prompts user for which song to play
                     # if multiple songs match user input.
-                    if len(intended_songs) > 0:
+                    if intended_songs:
                         if len(intended_songs) > 1:
                             no_index = False
                             try:
@@ -665,4 +737,3 @@ def main(initial_input: str) -> None:
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
-
