@@ -4,6 +4,7 @@ import os
 import random
 import shutil
 import sys
+
 from inputimeout import inputimeout, TimeoutOccurred
 from mutagen.mp3 import MP3
 import pygame
@@ -664,3 +665,4 @@ def main(initial_input: str) -> None:
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
+
