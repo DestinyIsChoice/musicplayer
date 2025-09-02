@@ -18,7 +18,7 @@ In order to run the music player in Termux:
 * First use setup:
 
       termux-setup-storage # Allow Termux to access files using the slider.
-      pkg i git
+      yes | pkg i git
       git clone https://github.com/DestinyIsChoice/musicplayer.git
       bash musicplayer/musicstartup.sh
 
