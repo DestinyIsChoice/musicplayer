@@ -28,6 +28,7 @@ if [ $(ps -ef|grep -c com.termux ) -gt 0 ]; then
     # Clear console and run music player.
     cd $SCRIPT_DIR
     clear
+    export PYGAME_HIDE_SUPPORT_PROMPT = "1"
     python "$SCRIPT_DIR/musicplayer.py"
 else
 
