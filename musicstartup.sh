@@ -9,13 +9,7 @@ if [ $(ps -ef|grep -c com.termux ) -gt 0 ]; then
     yes | pkg i sdl2 sdl2-gfx sdl2-image sdl2-mixer sdl2-ttf
     yes | pkg i xorgproto
     yes | pkg i ffmpeg
-    pip install inputimeout
-    pip install mutagen
-    pip install pygame
-    pip install pytube
-    pip install pytubefix
-    pip install youtube-search
-    pip install yt_dlp
+    pip install -r requirements.txt
 
     # Stop operating system from closing Termux.
     termux-wake-lock
@@ -33,12 +27,7 @@ if [ $(ps -ef|grep -c com.termux ) -gt 0 ]; then
 else
 
     # Install dependencies.
-    pip install inputimeout
-    pip install mutagen
-    pip install pygame
-    pip install pytubefix
-    pip install youtube-search
-    pip install yt_dlp
+    pip install -r requirements.txt
 
     # Clear console and run music player.
     clear
