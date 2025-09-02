@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Detect operating system.
-if [ "$( pgrep -c com.termux )" -gt 0 ]; then
+if echo "$PREFIX" | grep -q "com.termux"; then
 
     # Install dependencies.
     yes | pkg i python
