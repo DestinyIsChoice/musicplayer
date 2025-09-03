@@ -534,7 +534,7 @@ def main(initial_input: str) -> None:
             for letter in list(input_characters):
                 if letter in song_characters:
                     counter += 1
-            if counter == len(list(input_characters)):
+            if counter == len(list(input_characters)) and song_path != "temp/":
                 intended_songs.append(song)
                 intended_song_paths.append(song_path)
         intended_songs = [song_path for number, song_path in enumerate(intended_songs)
@@ -691,7 +691,7 @@ def main(initial_input: str) -> None:
                     print("→ Cannot play this song!\n→ ")
                     main(input("→ "))
                 elif input_characters[0] != "-":
-                    for inputs, song_path in os.listdir(path):
+                    for inputs, song_path in get_songs(path):
                         song_words = inputs.split(" ")
                         if len(song_words) > 1:
                             song_characters = [((list(word))[0]).lower() for word in song_words]
@@ -708,8 +708,8 @@ def main(initial_input: str) -> None:
                         if matching_characters == len(list(input_characters)):
                             intended_songs.append(inputs)
                             intended_song_paths.append(song_path)
-                        intended_songs = [song_path for song_path in intended_songs
-                                          if os.path.isfile(f"{path}/{song_path}")]
+                        intended_songs = [song_path for number, song_path in enumerate(intended_songs)
+                                          if os.path.isfile(f"{path}/{intended_song_paths[number]}{song_path}")]
 
                     # Prompts user for which song to play
                     # if multiple songs match user input.
@@ -750,6 +750,7 @@ def main(initial_input: str) -> None:
                                 main(input("→ "))
                             except Exception as e:
                                 print(f"An error occurred: {e}")
+                        else:
                             specific_song = intended_songs[0]
                             specific_song_path = intended_song_paths[0]
                             all_songs.remove(f"{specific_song_path}{specific_song}")
