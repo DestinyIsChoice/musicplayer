@@ -267,15 +267,17 @@ def main(initial_input: str) -> None:
                 print(f"An error occurred: {e}")
                 main(input("→ "))
         elif initial_input == "+":
+            to_rename = input("→ ")
+            rename = input("→ ")
             try:
-                os.rename(f"{path}/{input("→ ")}.mp3", f"{path}/{input("→ ")}.mp3")
+                os.rename(f"{path}/{to_rename}.mp3", f"{path}/{rename}.mp3")
             except FileNotFoundError:
                 try:
-                    os.rename(f"{path}/{input("→ ")}", f"{path}/{input("→ ")}")
+                    os.rename(f"{path}/{to_rename}", f"{path}/{rename}")
                 except FileNotFoundError:
                     print("→ Does not exist!")
                 except WindowsError:
-                    print("→ Cannot delete!")
+                    print("→ Cannot rename!")
                 except Exception as e:
                     print(f"An error occurred: {e}")
             except WindowsError:
