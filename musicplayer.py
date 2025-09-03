@@ -13,14 +13,14 @@ from youtube_search import YoutubeSearch
 import yt_dlp as youtube_dl
 
 # noinspection SpellCheckingInspection
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 path = ""
 
 
 def clean(string: str) -> str:
     """Removes illegal characters from a string used as a file name."""
 
-    return string.translate(str.maketrans('', '', '\\/:*?"<>|'))
+    return string.translate(str.maketrans("", "", '\\/:*?"<>|'))
 
 
 def get_songs(songs_path: str) -> list[tuple]:
@@ -134,13 +134,13 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
 
     # Downloads audio from YouTube as mp3 using ffmpeg.
     with youtube_dl.YoutubeDL({
-        'no_warnings': True,
-        'format': 'bestaudio/best',
-        'outtmpl': f"{folder}/{name}",
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192'
+        "no_warnings": True,
+        "format": "bestaudio/best",
+        "outtmpl": f"{folder}/{name}",
+        "postprocessors": [{
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+            "preferredquality": "192"
         }]
     }) as ydl:
         ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
