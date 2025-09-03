@@ -270,7 +270,14 @@ def main(initial_input: str) -> None:
             try:
                 os.rename(f"{path}/{input("→ ")}.mp3", f"{path}/{input("→ ")}.mp3")
             except FileNotFoundError:
-                print("→ This song does not exist!")
+                try:
+                    os.rename(f"{path}/{input("→ ")}", f"{path}/{input("→ ")}")
+                except FileNotFoundError:
+                    print("→ Does not exist!")
+                except WindowsError:
+                    print("→ Cannot delete!")
+                except Exception as e:
+                    print(f"An error occurred: {e}")
             except WindowsError:
                 print("→ Cannot rename this song!")
             except Exception as e:
