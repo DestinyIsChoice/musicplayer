@@ -718,8 +718,11 @@ def main(initial_input: str) -> None:
                         if matching_characters == len(list(input_characters)):
                             intended_songs.append(inputs)
                             intended_song_paths.append(song_path)
-                        intended_songs = [song_path for number, song_path in enumerate(intended_songs)
-                                          if os.path.isfile(f"{path}/{intended_song_paths[number]}{song_path}")]
+                        intended_songs = [song_path for number, song_path
+                                          in enumerate(intended_songs)
+                                          if os.path.isfile(
+                                                    f"{path}/{intended_song_paths[number]}"
+                                                    f"{song_path}")]
 
                     # Prompts user for which song to play
                     # if multiple songs match user input.
