@@ -373,7 +373,6 @@ def main(initial_input: str) -> None:
             playlist_url = input("→ ")
             try:
                 playlist = Playlist(playlist_url)
-                titles = []
                 titles = [f"temp/{clean(YouTube(url).title)}" for url in playlist.video_urls]
 
                 # Downloads audio files from YouTube.
@@ -569,7 +568,8 @@ def main(initial_input: str) -> None:
                 # Initializes music player
                 # and creates list of songs to be played.
                 pygame.mixer.init()
-                all_songs = [f"{song_path}{song}" for song, song_path in get_songs(path)]
+                all_songs = [f"{song_path}{song}" for song, song_path in get_songs(path)
+                             if song_path.split("/")[0] != "temp"]
 
                 # Adds streamed and downloaded songs
                 # to list of songs to be played.
@@ -583,7 +583,10 @@ def main(initial_input: str) -> None:
                         # noinspection PyUnboundLocalVariable
                         specific_song = intended_songs[index - 1]
                         specific_song_path = intended_song_paths[index - 1]
-                        all_songs.remove(f"{specific_song_path}{specific_song}")
+                        try:
+                            all_songs.remove(f"{specific_song_path}{specific_song}")
+                        except ValueError:
+                            pass
                         all_songs.insert(0, f"{specific_song_path}{specific_song}")
                     except IndexError:
                         print("→ This song cannot be played!")
@@ -619,7 +622,8 @@ def main(initial_input: str) -> None:
             # and creates list of songs to be played.
             else:
                 pygame.mixer.init()
-                all_songs = [f"{song_path}{song}" for song, song_path in get_songs(path)]
+                all_songs = [f"{song_path}{song}" for song, song_path in get_songs(path)
+                             if song_path.split("/")[0] != "temp"]
                 random.shuffle(all_songs)
 
                 # Adds streamed and downloaded songs
@@ -627,7 +631,12 @@ def main(initial_input: str) -> None:
                 if downloaded_name != "":
                     all_songs.insert(0, downloaded_name)
                 elif not downloaded:
-                    all_songs.remove(f"{intended_song_paths[0]}{intended_songs[0]}")
+                    try:
+                        all_songs.remove(f"{intended_song_paths[0]}{intended_songs[0]}")
+                    except ValueError:
+                        pass
+                    except Exception as e:
+                        print(f"An error occurred: {e}")
                     all_songs.insert(0, f"{intended_song_paths[0]}{intended_songs[0]}")
                 else:
                     all_songs.insert(0, "temp/file.mp3")
@@ -677,7 +686,8 @@ def main(initial_input: str) -> None:
 
     # Creates shuffled list of music to be played.
     else:
-        all_songs = [f"{song_path}{song}" for song, song_path in get_songs(path)]
+        all_songs = [f"{song_path}{song}" for song, song_path in get_songs(path)
+                     if song_path.split("/")[0] != "temp"]
         random.shuffle(all_songs)
 
         # Handles each song in user input separately.
@@ -743,7 +753,12 @@ def main(initial_input: str) -> None:
                             try:
                                 specific_song = intended_songs[index - 1]
                                 specific_song_path = intended_song_paths[index - 1]
-                                all_songs.remove(f"{specific_song_path}{specific_song}")
+                                try:
+                                    all_songs.remove(f"{specific_song_path}{specific_song}")
+                                except ValueError:
+                                    pass
+                                except Exception as e:
+                                    print(f"An error occurred: {e}")
                                 all_songs.insert(counter, f"{specific_song_path}{specific_song}")
                             except IndexError:
                                 print("→ This song cannot be played!")
@@ -753,7 +768,12 @@ def main(initial_input: str) -> None:
                         else:
                             specific_song = intended_songs[0]
                             specific_song_path = intended_song_paths[0]
-                            all_songs.remove(f"{specific_song_path}{specific_song}")
+                            try:
+                                all_songs.remove(f"{specific_song_path}{specific_song}")
+                            except ValueError:
+                                pass
+                            except Exception as e:
+                                print(f"An error occurred: {e}")
                             all_songs.insert(counter, f"{specific_song_path}{specific_song}")
                 else:
                     try:
