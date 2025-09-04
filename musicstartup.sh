@@ -27,5 +27,6 @@ fi
     cd musicplayer || return
     git pull origin main
     clear
+    export PYTHONIOENCODING=utf-8
     export PYGAME_HIDE_SUPPORT_PROMPT="1"
     python musicplayer.py
