@@ -9,7 +9,6 @@ if echo "$PREFIX" | grep -q "com.termux"; then
     yes | pkg i sdl2 sdl2-gfx sdl2-image sdl2-mixer sdl2-ttf
     yes | pkg i xorgproto
     yes | pkg i ffmpeg
-    pip install -r musicplayer/requirements.txt
 
     # Stop operating system from closing Termux.
     termux-wake-lock
@@ -17,11 +16,10 @@ if echo "$PREFIX" | grep -q "com.termux"; then
     # Patch PulseAudio in order to allow for audio to be played.
     rm -f /data/data/com.termux/files/usr/etc/pulse/default.pa
     cp "musicplayer/default.pa" /data/data/com.termux/files/usr/etc/pulse/
-else
+fi
 
     # Install dependencies.
     pip install -r musicplayer/requirements.txt
-fi
 
     # Clear console and run music player.
     cd musicplayer || return
