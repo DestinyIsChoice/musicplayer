@@ -1,3 +1,6 @@
+"""Ultra lightweight python music player."""
+
+
 import json
 import logging
 import os
@@ -10,7 +13,7 @@ from mutagen.mp3 import MP3
 import pygame
 from pytubefix import YouTube, Playlist
 from youtube_search import YoutubeSearch
-import yt_dlp as youtube_dl
+import yt_dlp
 
 # noinspection SpellCheckingInspection
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -133,7 +136,7 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
     sys.stdout = open(os.devnull, "w")
 
     # Downloads audio from YouTube as mp3 using ffmpeg.
-    with youtube_dl.YoutubeDL({
+    with yt_dlp.YoutubeDL({
         "no_warnings": True,
         "format": "bestaudio/best",
         "outtmpl": f"{folder}/{name}",
@@ -514,7 +517,7 @@ def main(initial_input: str) -> None:
 
         # Creates variables for creating list of songs to be played.
         all_songs = []
-        intended_songs = [""] if downloaded else []
+        intended_songs = []
         intended_song_paths = []
         input_characters = list((initial_input.split(" "))[0])
 
@@ -537,7 +540,8 @@ def main(initial_input: str) -> None:
                 intended_songs.append(song)
                 intended_song_paths.append(song_path)
         intended_songs = [song_path for number, song_path in enumerate(intended_songs)
-                          if os.path.isfile(f"{path}/{intended_song_paths[number]}{song_path}")]
+                          if os.path.isfile(f"{path}/{intended_song_paths[number]}{song_path}")] \
+            if not downloaded else [""]
 
         # Prompts user for which song to play
         # if multiple songs match user input.
@@ -596,6 +600,7 @@ def main(initial_input: str) -> None:
                 else:
                     random.shuffle(all_songs)
                     all_songs.insert(0, "temp/file.mp3")
+                    print(all_songs)
 
                 # Plays songs in list of songs to be played.
                 for playable_song in all_songs:
