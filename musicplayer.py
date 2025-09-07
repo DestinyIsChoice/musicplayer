@@ -66,7 +66,7 @@ def get_path() -> None:
                 print("→ This folder currently contains no music! ")
             return
         else:
-            if input("→ Would you like to create a new folder? (Y/n) ") == "n":
+            if input("→ Would you like to create a new folder? (Y/n)\n→ ") == "n":
                 get_path()
                 return
             else:
@@ -825,3 +825,4 @@ def main(initial_input: str) -> None:
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
+
