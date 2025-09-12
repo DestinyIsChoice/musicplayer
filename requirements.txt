@@ -7,11 +7,8 @@ mutagen
 # Allows for .mp3 files to be played.
 pygame
 
-# Allows for YouTube audio to be downloaded from playlists.
+# Allows for YouTube audio to be downloaded.
 pytubefix
 
 # Allows for YouTube to be searched for audio.
 youtube-search
-
-# Allows for YouTube audio to be downloaded from videos.
-yt_dlp
