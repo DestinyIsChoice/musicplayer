@@ -4,16 +4,16 @@
 import json
 import logging
 import os
+import pytubefix.exceptions
 import random
 import shutil
-import sys
+import subprocess
 
 from inputimeout import inputimeout, TimeoutOccurred
 from mutagen.mp3 import MP3
 import pygame
 from pytubefix import YouTube, Playlist
 from youtube_search import YoutubeSearch
-import yt_dlp
 
 # noinspection SpellCheckingInspection
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -114,15 +114,16 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
 
     Uses silent output.
 
-    Uses ffmpeg to get mp3 file.
+    Uses FFmpeg in order to convert to mp3 file.
     """
 
-    filename = f"{folder}/{name}.mp3"
-    if os.path.isfile(filename) and name.split("/")[0] != "temp":
+    file_name = f"{folder}/{name}"
+    file_name_mp3 = f"{file_name}.mp3"
+    if os.path.isfile(file_name_mp3) and name.split("/")[-2] != "temp":
         if input(f"→ Would you like to overwrite {name.split("/")[-1]}? (Y/n) ") == "n":
             return
     try:
-        os.remove(filename)
+        os.remove(file_name_mp3)
     except FileNotFoundError:
         pass
     except WindowsError:
@@ -131,25 +132,39 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
     except Exception as e:
         print(f"An error occurred: {e}")
 
-    # Silences output by redirecting stdout to nothing.
-    old_stdout = sys.stdout
-    sys.stdout = open(os.devnull, "w")
+    # Downloads video from YouTube.
+    try:
+        audio_stream = (YouTube(f"https://www.youtube.com/watch?v={video_id}")
+                        .streams.filter(only_audio=True).first())
+        if audio_stream:
+            audio_stream.download(output_path="/".join(file_name.split("/")[:-1]),
+                                  filename=f"{file_name.split("/")[-1]}.webm")
+        else:
+            print("Song not found.")
+    except pytubefix.exceptions.AgeRestrictedError:
+        print("Cannot download this song!")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
-    # Downloads audio from YouTube as mp3 using ffmpeg.
-    with yt_dlp.YoutubeDL({
-        "no_warnings": True,
-        "format": "bestaudio/best",
-        "outtmpl": f"{folder}/{name}",
-        "postprocessors": [{
-            "key": "FFmpegExtractAudio",
-            "preferredcodec": "mp3",
-            "preferredquality": "192"
-        }]
-    }) as ydl:
-        ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
-
-    # Redirects stdout back to command line.
-    sys.stdout = old_stdout
+    # Converts audio to mp3 using FFmpeg.
+    try:
+        subprocess.run([
+            "ffmpeg",
+            "-i", f"{file_name}.webm",
+            "-vn",
+            "-acodec", "libmp3lame",
+            "-q:a", "2",
+            "-y",
+            "-loglevel", "quiet",
+            file_name_mp3
+        ])
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    if os.path.isfile(file_name_mp3):
+        try:
+            os.remove(f"{file_name}.webm")
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
 
 def allow_pausing(current: str) -> None:
@@ -825,4 +840,3 @@ def main(initial_input: str) -> None:
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
-
