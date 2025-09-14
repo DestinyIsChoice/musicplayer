@@ -12,12 +12,17 @@ import subprocess
 from inputimeout import inputimeout, TimeoutOccurred
 from mutagen.mp3 import MP3
 import pygame
+import pygame._sdl2.audio
 from pytubefix import YouTube, Playlist
 from youtube_search import YoutubeSearch
 
+
 # noinspection SpellCheckingInspection
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+currently_playing = ""
+current_volume = 100
 path = ""
+past_position = 0
 
 
 def clean(string: str) -> str:
@@ -75,7 +80,7 @@ def get_path() -> None:
                 except OSError:
                     get_path()
                 except Exception as e:
-                    print(f"An error occurred: {e}")
+                    print(f"→ An error occurred: {e}")
                 return
 
 
@@ -105,7 +110,7 @@ def validate_int() -> int | None:
             except ValueError:
                 validated_string = input("→ ")
             except Exception as e:
-                print(f"An error occurred: {e}")
+                print(f"→ An error occurred: {e}")
 
 
 # noinspection SpellCheckingInspection
@@ -130,7 +135,7 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
         pygame.mixer.quit()
         get_audio(video_id, folder, name)
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"→ An error occurred: {e}")
 
     # Downloads video from YouTube.
     try:
@@ -144,7 +149,7 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
     except pytubefix.exceptions.AgeRestrictedError:
         print("Cannot download this song!")
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"→ An error occurred: {e}")
 
     # Converts audio to mp3 using FFmpeg.
     try:
@@ -159,12 +164,12 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
             file_name_mp3
         ])
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"→ An error occurred: {e}")
     if os.path.isfile(file_name_mp3):
         try:
             os.remove(f"{file_name}.webm")
         except Exception as e:
-            print(f"An error occurred: {e}")
+            print(f"→ An error occurred: {e}")
 
 
 def allow_pausing(current: str) -> None:
@@ -177,6 +182,8 @@ def allow_pausing(current: str) -> None:
     if music is unpaused.
     """
 
+    global current_volume
+    global past_position
     pausable = ""
     try:
         audio = MP3(current)
@@ -189,12 +196,13 @@ def allow_pausing(current: str) -> None:
                   .replace(".mp3", "")}!")
 
         # Allows for user input.
-        pausable = inputimeout(
-            prompt="→ ", timeout=(audio.info.length - (pygame.mixer.music.get_pos() / 1000)))
+        pausable = inputimeout(prompt="→ ", timeout=(audio.info.length
+                                                     - (pygame.mixer.music.get_pos() / 1000))
+                               - past_position)
     except TimeoutOccurred:
         pausable = "_"
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"→ An error occurred: {e}")
 
     # Checks if user intends to pause music, skip song,
     # select a new folder, change the volume or select a new song.
@@ -212,6 +220,7 @@ def allow_pausing(current: str) -> None:
                 pausable = float(pausable[1:]) / 100
                 if 0 <= pausable <= 1:
                     pygame.mixer.music.set_volume(pausable)
+                    current_volume = pausable
                 else:
                     print("→ Volume must be set to a number between 0 and 100!")
                 allow_pausing(current)
@@ -219,14 +228,39 @@ def allow_pausing(current: str) -> None:
                 print("→ Volume must be set to a number between 0 and 100!")
                 allow_pausing(current)
             except Exception as e:
-                print(f"An error occurred: {e}")
+                print(f"→ An error occurred: {e}")
                 main(input("→ "))
+        elif pausable == "^":
+            devices = tuple(pygame._sdl2.audio.get_audio_device_names(False))
+
+            # Prompt user for intended audio device.
+            for number, device in enumerate(devices):
+                print(f"→ {number + 1}.", device)
+            while True:
+                input_number = validate_int()
+                if len(devices) >= input_number >= 1:
+                    break
+
+            # Plays song with selected audio device.
+            position = pygame.mixer.music.get_pos() / 1000 + past_position
+            pygame.mixer.quit()
+            try:
+                pygame.mixer.init(devicename=devices[input_number - 1])
+            except pygame.error:
+                print("→ Cannot use this device!")
+                allow_pausing(current)
+            pygame.mixer.music.load(current)
+            pygame.mixer.music.play()
+            pygame.mixer.music.set_volume(current_volume)
+            pygame.mixer.music.set_pos(position)
+            past_position = position
+            allow_pausing(current)
         else:
             main(pausable)
     except IndexError:
         main(pausable)
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"→ An error occurred: {e}")
 
 
 def main(initial_input: str) -> None:
@@ -243,6 +277,9 @@ def main(initial_input: str) -> None:
     followed by a random assortment of local files.
     """
 
+    global current_volume
+    global currently_playing
+    global past_position
     global path
     downloaded = False
     downloaded_name = ""
@@ -258,7 +295,7 @@ def main(initial_input: str) -> None:
             except FileNotFoundError:
                 pass
             except Exception as e:
-                print(f"An error occurred: {e}")
+                print(f"→ An error occurred: {e}")
             print("→ Exiting!")
             exit(0)
         elif initial_input == "_":
@@ -271,6 +308,7 @@ def main(initial_input: str) -> None:
                 initial_input = float(initial_input[1:]) / 100
                 if 0 <= initial_input <= 1:
                     pygame.mixer.music.set_volume(initial_input)
+                    current_volume = initial_input
                 else:
                     print("→ Volume must be set to a number between 0 and 100!")
                 main(input("→ "))
@@ -280,9 +318,10 @@ def main(initial_input: str) -> None:
             except pygame.error:
                 pygame.mixer.init()
                 pygame.mixer.music.set_volume(initial_input)
+                current_volume = initial_input
                 main(input("→ "))
             except Exception as e:
-                print(f"An error occurred: {e}")
+                print(f"→ An error occurred: {e}")
                 main(input("→ "))
         elif initial_input == "+":
             to_rename = input("→ ")
@@ -297,11 +336,11 @@ def main(initial_input: str) -> None:
                 except WindowsError:
                     print("→ Cannot rename!")
                 except Exception as e:
-                    print(f"An error occurred: {e}")
+                    print(f"→ An error occurred: {e}")
             except WindowsError:
                 print("→ Cannot rename this song!")
             except Exception as e:
-                print(f"An error occurred: {e}")
+                print(f"→ An error occurred: {e}")
             main(input("→ "))
         elif initial_input == "=":
             remove = input("→ ")
@@ -315,16 +354,50 @@ def main(initial_input: str) -> None:
                 except WindowsError:
                     print("→ Cannot delete!")
                 except Exception as e:
-                    print(f"An error occurred: {e}")
+                    print(f"→ An error occurred: {e}")
             except WindowsError:
                 print("→ Cannot delete this song!")
             except Exception as e:
-                print(f"An error occurred: {e}")
+                print(f"→ An error occurred: {e}")
             main(input("→ "))
+        elif initial_input == "^":
+            if not pygame.mixer.get_init():
+                pygame.mixer.init()
+            devices = tuple(pygame._sdl2.audio.get_audio_device_names(False))
+
+            # Prompt user for intended audio device.
+            for number, device in enumerate(devices):
+                print(f"→ {number + 1}.", device)
+            while True:
+                input_number = validate_int()
+                if len(devices) >= input_number >= 1:
+                    break
+            if pygame.mixer.music.get_busy():
+                position = pygame.mixer.music.get_pos() / 1000 + past_position
+                pygame.mixer.quit()
+                try:
+                    pygame.mixer.init(devicename=devices[input_number - 1])
+                except pygame.error:
+                    print("→ Cannot use this device!")
+                    allow_pausing(currently_playing)
+                pygame.mixer.music.load(currently_playing)
+                pygame.mixer.music.play()
+                pygame.mixer.music.set_volume(current_volume)
+                pygame.mixer.music.set_pos(position)
+                past_position = position
+            else:
+                if pygame.mixer.get_init():
+                    pygame.mixer.quit()
+                try:
+                    pygame.mixer.init(devicename=devices[input_number - 1])
+                except pygame.error:
+                    print("→ Cannot use this device!")
+        elif initial_input == "@":
+            allow_pausing(currently_playing)
     except IndexError:
         pass
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"→ An error occurred: {e}")
 
     # Handles streaming a song from YouTube.
     if initial_input == initial_input.replace("_", ""):
@@ -353,7 +426,7 @@ def main(initial_input: str) -> None:
                 except ValueError:
                     return
                 except Exception as e:
-                    print(f"An error occurred: {e}")
+                    print(f"→ An error occurred: {e}")
 
         # Handles downloading a song from YouTube.
         elif initial_input == "'":
@@ -384,7 +457,7 @@ def main(initial_input: str) -> None:
                 except ValueError:
                     return
                 except Exception as e:
-                    print(f"An error occurred: {e}")
+                    print(f"→ An error occurred: {e}")
 
         # Handles streaming a playlist from YouTube.
         elif initial_input == "$":
@@ -410,7 +483,7 @@ def main(initial_input: str) -> None:
                 except ValueError:
                     return
                 except Exception as e:
-                    print(f"An error occurred: {e}")
+                    print(f"→ An error occurred: {e}")
 
         # Handles downloading a playlist from YouTube.
         elif initial_input == '"':
@@ -449,7 +522,7 @@ def main(initial_input: str) -> None:
                 except ValueError:
                     return
                 except Exception as e:
-                    print(f"An error occurred: {e}")
+                    print(f"→ An error occurred: {e}")
 
         # Handles playing an album.
         elif initial_input == ":":
@@ -493,7 +566,7 @@ def main(initial_input: str) -> None:
                         except (IndexError, ValueError):
                             no_index = True
                         except Exception as e:
-                            print(f"An error occurred: {e}")
+                            print(f"→ An error occurred: {e}")
                         if (len(initial_input.split(" ")) == 1) or no_index:
                             for number, playable_album in enumerate(intended_albums):
                                 print(f"→ {number + 1}.", playable_album)
@@ -520,14 +593,16 @@ def main(initial_input: str) -> None:
 
                 # Plays all songs in selected album.
                 for playable_song in album_songs:
+                    currently_playing = f"{path}/{album_path}/{playable_song}"
                     try:
-                        pygame.mixer.music.load(f"{path}/{album_path}/{playable_song}")
+                        pygame.mixer.music.load(currently_playing)
                     except pygame.error:
                         return
                     except Exception as e:
-                        print(f"An error occurred: {e}")
+                        print(f"→ An error occurred: {e}")
+                    past_position = 0
                     pygame.mixer.music.play()
-                    allow_pausing(f"{path}/{album_path}/{playable_song}")
+                    allow_pausing(currently_playing)
             main(input("→ "))
 
         # Creates variables for creating list of songs to be played.
@@ -569,7 +644,7 @@ def main(initial_input: str) -> None:
                     except (IndexError, ValueError):
                         no_index = True
                     except Exception as e:
-                        print(f"An error occurred: {e}")
+                        print(f"→ An error occurred: {e}")
                     if (len(initial_input.split(" ")) == 1) or no_index:
                         for number, playable_song in enumerate(intended_songs):
                             if intended_song_paths[number] != "":
@@ -611,7 +686,7 @@ def main(initial_input: str) -> None:
                         print("→ This song cannot be played!")
                         main(input("→ "))
                     except Exception as e:
-                        print(f"An error occurred: {e}")
+                        print(f"→ An error occurred: {e}")
                 else:
                     random.shuffle(all_songs)
                     all_songs.insert(0, "temp/file.mp3")
@@ -619,12 +694,14 @@ def main(initial_input: str) -> None:
 
                 # Plays songs in list of songs to be played.
                 for playable_song in all_songs:
+                    currently_playing = f"{path}/{playable_song}"
                     try:
-                        pygame.mixer.music.load(f"{path}/{playable_song}")
+                        pygame.mixer.music.load(currently_playing)
                     except pygame.error:
                         return
                     except Exception as e:
-                        print(f"An error occurred: {e}")
+                        print(f"→ An error occurred: {e}")
+                    past_position = 0
                     pygame.mixer.music.play()
 
                     # Allows user to pause music.
@@ -632,9 +709,9 @@ def main(initial_input: str) -> None:
                         allow_pausing(f"{path}/{downloaded_name}")
                         downloaded_name = ""
                     elif downloaded:
-                        allow_pausing(f"{path}/{playable_song}")
+                        allow_pausing(currently_playing)
                     else:
-                        allow_pausing(f"{path}/{playable_song}")
+                        allow_pausing(currently_playing)
                 get_path()
                 main(input("→ "))
 
@@ -656,19 +733,21 @@ def main(initial_input: str) -> None:
                     except ValueError:
                         pass
                     except Exception as e:
-                        print(f"An error occurred: {e}")
+                        print(f"→ An error occurred: {e}")
                     all_songs.insert(0, f"{intended_song_paths[0]}{intended_songs[0]}")
                 else:
                     all_songs.insert(0, "temp/file.mp3")
 
                 # Plays songs in list of songs to be played.
                 for playable_song in all_songs:
+                    currently_playing = f"{path}/{playable_song}"
                     try:
-                        pygame.mixer.music.load(f"{path}/{playable_song}")
+                        pygame.mixer.music.load(currently_playing)
                     except pygame.error:
                         return
                     except Exception as e:
-                        print(f"An error occurred: {e}")
+                        print(f"→ An error occurred: {e}")
+                    past_position = 0
                     pygame.mixer.music.play()
 
                     # Allows user to pause music.
@@ -676,9 +755,9 @@ def main(initial_input: str) -> None:
                         allow_pausing(f"{path}/{downloaded_name}")
                         downloaded_name = ""
                     elif downloaded:
-                        allow_pausing(f"{path}/{playable_song}")
+                        allow_pausing(currently_playing)
                     else:
-                        allow_pausing(f"{path}/{playable_song}")
+                        allow_pausing(currently_playing)
                 get_path()
                 main(input("→ "))
         elif titles:
@@ -688,14 +767,16 @@ def main(initial_input: str) -> None:
                 all_songs.insert(0, f"{title}.mp3")
             pygame.mixer.init()
             for playable_song in all_songs:
+                currently_playing = f"{path}/{playable_song}"
                 try:
-                    pygame.mixer.music.load(f"{path}/{playable_song}")
+                    pygame.mixer.music.load(currently_playing)
                 except pygame.error:
                     return
                 except Exception as e:
-                    print(f"An error occurred: {e}")
+                    print(f"→ An error occurred: {e}")
+                past_position = 0
                 pygame.mixer.music.play()
-                allow_pausing(f"{path}/{playable_song}")
+                allow_pausing(currently_playing)
             get_path()
             main(input("→ "))
 
@@ -754,7 +835,7 @@ def main(initial_input: str) -> None:
                             except (IndexError, ValueError):
                                 no_index = True
                             except Exception as e:
-                                print(f"An error occurred: {e}")
+                                print(f"→ An error occurred: {e}")
                             if no_index:
                                 for number, playable_song in enumerate(intended_songs):
                                     if intended_song_paths[number] != "":
@@ -781,13 +862,13 @@ def main(initial_input: str) -> None:
                                 except ValueError:
                                     pass
                                 except Exception as e:
-                                    print(f"An error occurred: {e}")
+                                    print(f"→ An error occurred: {e}")
                                 all_songs.insert(counter, f"{specific_song_path}{specific_song}")
                             except IndexError:
                                 print("→ This song cannot be played!")
                                 main(input("→ "))
                             except Exception as e:
-                                print(f"An error occurred: {e}")
+                                print(f"→ An error occurred: {e}")
                         else:
                             specific_song = intended_songs[0]
                             specific_song_path = intended_song_paths[0]
@@ -796,7 +877,7 @@ def main(initial_input: str) -> None:
                             except ValueError:
                                 pass
                             except Exception as e:
-                                print(f"An error occurred: {e}")
+                                print(f"→ An error occurred: {e}")
                             all_songs.insert(counter, f"{specific_song_path}{specific_song}")
                 else:
                     try:
@@ -824,14 +905,16 @@ def main(initial_input: str) -> None:
 
         # Plays songs in list of songs to be played.
         for playable_song in all_songs:
+            currently_playing = f"{path}/{playable_song}"
             try:
-                pygame.mixer.music.load(f"{path}/{playable_song}")
+                pygame.mixer.music.load(currently_playing)
             except pygame.error:
                 return
             except Exception as e:
-                print(f"An error occurred: {e}")
+                print(f"→ An error occurred: {e}")
+            past_position = 0
             pygame.mixer.music.play()
-            allow_pausing(f"{path}/{playable_song}")
+            allow_pausing(currently_playing)
         get_path()
         main(input("→ "))
 
