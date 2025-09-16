@@ -179,11 +179,8 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
         image = Image.open(f"{file_name}.jpg")
         width, height = image.size
         min_dim = min(width, height)
-        left = (width - min_dim) // 2 + 60
-        top = (height - min_dim) // 2 + 60
-        right = (width + min_dim) // 2 - 60
-        bottom = (height + min_dim) // 2 - 60
-        crop_box = (left, top, right, bottom)
+        crop_box = ((width - min_dim) // 2 + 60, (height - min_dim) // 2 + 60,
+                    (width + min_dim) // 2 - 60, (height + min_dim) // 2 - 60)
         cropped_image = image.crop(crop_box)
         cropped_image.save(f"{file_name}.jpg")
         audiofile = eyed3.load(f"{file_name}.mp3")
@@ -468,6 +465,11 @@ def main(initial_input: str) -> None:
 
                 # Gets song names from user.
                 title = clean(input("→ Please input a title for this song!\n→ "))
+                if os.path.isfile(f"{path}/{title}.mp3"):
+                    if input(f"→ Would you like to overwrite {title}? (Y/n) ") == "n":
+                        main(input("→ "))
+                    else:
+                        os.remove(f"{path}/{title}.mp3")
 
                 # Downloads audio file from YouTube.
                 get_audio(youtube_results["videos"][input_number - 1]["id"], path, title)
@@ -575,7 +577,7 @@ def main(initial_input: str) -> None:
                     else:
                         album_characters = [character.lower() for character in list(album)]
 
-                    # Checks if user input matches song.
+                    # Checks if user input matches album.
                     counter = 0
                     for letter in list(input_characters):
                         if letter in album_characters:
@@ -583,8 +585,8 @@ def main(initial_input: str) -> None:
                     if counter == len(list(input_characters)):
                         intended_albums.append(album)
 
-                # Prompts user for which song to play
-                # if multiple songs match user input.
+                # Prompts user for which album to play
+                # if multiple albums match user input.
                 if intended_albums:
                     if len(intended_albums) > 1:
                         no_index = False
@@ -600,8 +602,8 @@ def main(initial_input: str) -> None:
                             index = validate_int()
 
                         # Accounts for if user has already selected
-                        # which song to play
-                        # if multiple songs match input.
+                        # which album to play
+                        # if multiple albums match input.
                         else:
                             index = int((initial_input.split(" "))[1])
                     else:
@@ -678,7 +680,7 @@ def main(initial_input: str) -> None:
                                 intended_path = f"({intended_song_paths[number].replace("/", "")})"
                             else:
                                 intended_path = ""
-                            print(f"→ {number + 1}. {playable_song[:-4]} {intended_path}")
+                            print(f"→ {number + 1}. {intended_path} {playable_song[:-4]}")
                         index = validate_int()
 
                     # Accounts for if user has already selected
