@@ -3,14 +3,19 @@
 
 import json
 import logging
+import math
 import os
 import pytubefix.exceptions
 import random
 import shutil
 import subprocess
+import urllib.request
 
+import eyed3
+from eyed3.id3.frames import ImageFrame
 from inputimeout import inputimeout, TimeoutOccurred
 from mutagen.mp3 import MP3
+from PIL import Image
 import pygame
 import pygame._sdl2.audio
 from pytubefix import YouTube, Playlist
@@ -66,10 +71,14 @@ def get_path() -> None:
     global path
     while True:
         path = input("→ Please input the path to your music folder!\n→ ")
-        if os.path.isdir(path):
-            if not os.listdir(path):
-                print("→ This folder currently contains no music! ")
-            return
+        try:
+            if os.path.isdir(path):
+                if not os.listdir(path):
+                    print("→ This folder currently contains no music! ")
+                return
+        except FileNotFoundError:
+            print("→ Cannot open this folder!")
+            get_path()
         else:
             if input("→ Would you like to create a new folder? (Y/n)\n→ ") == "n":
                 get_path()
@@ -139,37 +148,49 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
 
     # Downloads video from YouTube.
     try:
-        audio_stream = (YouTube(f"https://www.youtube.com/watch?v={video_id}")
-                        .streams.filter(only_audio=True).first())
+        video = YouTube(f"https://www.youtube.com/watch?v={video_id}")
+        audio_stream = video.streams.filter(only_audio=True).first()
         if audio_stream:
             audio_stream.download(output_path="/".join(file_name.split("/")[:-1]),
                                   filename=f"{file_name.split("/")[-1]}.webm")
         else:
             print("Song not found.")
+        # Converts audio to mp3 using FFmpeg.
+        try:
+            subprocess.run([
+                "ffmpeg",
+                "-i", f"{file_name}.webm",
+                "-vn",
+                "-acodec", "libmp3lame",
+                "-q:a", "2",
+                "-y",
+                "-loglevel", "quiet",
+                file_name_mp3
+            ])
+        except Exception as e:
+            print(f"→ An error occurred: {e}")
+        if os.path.isfile(file_name_mp3):
+            try:
+                os.remove(f"{file_name}.webm")
+            except Exception as e:
+                print(f"→ An error occurred: {e}")
+
+        # Downloads audio thumbnail.
+        urllib.request.urlretrieve(video.thumbnail_url, f"{file_name}.jpg")
+        image = Image.open(f"{file_name}.jpg")
+        dimensions = math.ceil(math.sqrt(image.size[0] * image.size[1]))
+        image.resize((dimensions, dimensions)).save(f"{file_name}.jpg")
+        audiofile = eyed3.load(f"{file_name}.mp3")
+        if audiofile.tag is None:
+            audiofile.initTag()
+        audiofile.tag.images.set(ImageFrame.FRONT_COVER, open(f"{file_name}.jpg", "rb")
+                                 .read(), "image/jpeg")
+        audiofile.tag.save(version=eyed3.id3.ID3_V2_3)
+        os.remove(f"{file_name}.jpg")
     except pytubefix.exceptions.AgeRestrictedError:
         print("Cannot download this song!")
     except Exception as e:
         print(f"→ An error occurred: {e}")
-
-    # Converts audio to mp3 using FFmpeg.
-    try:
-        subprocess.run([
-            "ffmpeg",
-            "-i", f"{file_name}.webm",
-            "-vn",
-            "-acodec", "libmp3lame",
-            "-q:a", "2",
-            "-y",
-            "-loglevel", "quiet",
-            file_name_mp3
-        ])
-    except Exception as e:
-        print(f"→ An error occurred: {e}")
-    if os.path.isfile(file_name_mp3):
-        try:
-            os.remove(f"{file_name}.webm")
-        except Exception as e:
-            print(f"→ An error occurred: {e}")
 
 
 def allow_pausing(current: str) -> None:
