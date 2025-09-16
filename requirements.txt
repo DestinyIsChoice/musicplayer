@@ -18,4 +18,3 @@ pytubefix
 
 # Allows for YouTube to be searched for audio.
 youtube-search
-
