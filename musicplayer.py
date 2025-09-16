@@ -3,7 +3,6 @@
 
 import json
 import logging
-import math
 import os
 import pytubefix.exceptions
 import random
@@ -178,8 +177,15 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
         # Downloads audio thumbnail.
         urllib.request.urlretrieve(video.thumbnail_url, f"{file_name}.jpg")
         image = Image.open(f"{file_name}.jpg")
-        dimensions = math.ceil(math.sqrt(image.size[0] * image.size[1]))
-        image.resize((dimensions, dimensions)).save(f"{file_name}.jpg")
+        width, height = image.size
+        min_dim = min(width, height)
+        left = (width - min_dim) // 2 + 60
+        top = (height - min_dim) // 2 + 60
+        right = (width + min_dim) // 2 - 60
+        bottom = (height + min_dim) // 2 - 60
+        crop_box = (left, top, right, bottom)
+        cropped_image = image.crop(crop_box)
+        cropped_image.save(f"{file_name}.jpg")
         audiofile = eyed3.load(f"{file_name}.mp3")
         if audiofile.tag is None:
             audiofile.initTag()
