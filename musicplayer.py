@@ -417,7 +417,11 @@ def main(initial_input: str) -> None:
                 except pygame.error:
                     print("→ Cannot use this device!")
         elif initial_input == "@":
-            allow_pausing(currently_playing)
+            if pygame.mixer.music.get_busy():
+                allow_pausing(currently_playing)
+            else:
+                print("→ No music is playing!")
+                main(input("→ "))
     except IndexError:
         pass
     except Exception as e:
