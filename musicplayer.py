@@ -662,9 +662,13 @@ def main(initial_input: str) -> None:
             if counter == len(list(input_characters)) and song_path != "temp/":
                 intended_songs.append(song)
                 intended_song_paths.append(song_path)
-        intended_songs = [song_path for number, song_path in enumerate(intended_songs)
-                          if os.path.isfile(f"{path}/{intended_song_paths[number]}{song_path}")] \
-            if not downloaded else [""]
+        if not downloaded:
+            intended_songs = [song_path for number, song_path
+                              in enumerate(intended_songs)
+                              if os.path.isfile(f"{path}/{intended_song_paths[number]}{song_path}")
+                              and song_path[-4:] == ".mp3"]
+        else:
+            intended_songs = [""]
 
         # Prompts user for which song to play
         # if multiple songs match user input.
@@ -854,9 +858,9 @@ def main(initial_input: str) -> None:
                             intended_song_paths.append(song_path)
                         intended_songs = [song_path for number, song_path
                                           in enumerate(intended_songs)
-                                          if os.path.isfile(
-                                                    f"{path}/{intended_song_paths[number]}"
-                                                    f"{song_path}")]
+                                          if os.path.isfile(f"{path}/{intended_song_paths[number]}"
+                                                            f"{song_path}")
+                                          and song_path[-4:] == ".mp3"]
 
                     # Prompts user for which song to play
                     # if multiple songs match user input.
