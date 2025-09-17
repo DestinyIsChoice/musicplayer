@@ -685,10 +685,11 @@ def main(initial_input: str) -> None:
                     if (len(initial_input.split(" ")) == 1) or no_index:
                         for number, playable_song in enumerate(intended_songs):
                             if intended_song_paths[number] != "":
-                                intended_path = f"({intended_song_paths[number].replace("/", "")})"
+                                intended_path = f"({intended_song_paths[number]
+                                                    .replace("/", "")}) "
                             else:
                                 intended_path = ""
-                            print(f"→ {number + 1}. {intended_path} {playable_song[:-4]}")
+                            print(f"→ {number + 1}. {intended_path}{playable_song[:-4]}")
                         index = validate_int()
 
                     # Accounts for if user has already selected
@@ -877,10 +878,10 @@ def main(initial_input: str) -> None:
                                 for number, playable_song in enumerate(intended_songs):
                                     if intended_song_paths[number] != "":
                                         intended_path = f"({intended_song_paths[number]
-                                                            .replace("/", "")})"
+                                                            .replace("/", "")}) "
                                     else:
                                         intended_path = ""
-                                    print(f"→ {number + 1}. {playable_song[:-4]} {intended_path}")
+                                    print(f"→ {number + 1}. {playable_song[:-4]}{intended_path}")
                                 index = validate_int()
 
                             # Accounts for if user has already
