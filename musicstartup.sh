@@ -18,11 +18,12 @@ if echo "$PREFIX" | grep -q "com.termux"; then
     cp "musicplayer/default.pa" /data/data/com.termux/files/usr/etc/pulse/
 fi
 
-    # Install dependencies.
-    pip install -r musicplayer/requirements.txt
+    # Unpack dependencies.
+    cd musicplayer || return
+    unzip -d libs libs.zip
+    rm -f libs.zip
 
     # Clear console and run music player.
-    cd musicplayer || return
     git pull origin main
     clear
     export PYTHONIOENCODING=utf-8
