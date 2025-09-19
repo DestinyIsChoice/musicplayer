@@ -1,0 +1,20 @@
+# Allows for thumbnails to be written to .mp3 files.
+eyed3
+
+# Allows for auto play capabilities.
+inputimeout
+
+# Allows for writing .mp3 files.
+mutagen
+
+# Allows for resizing images to thumbnail shape.
+pillow
+
+# Allows for .mp3 files to be played.
+pygame
+
+# Allows for YouTube audio to be downloaded.
+pytubefix
+
+# Allows for YouTube to be searched for audio.
+youtube-search
