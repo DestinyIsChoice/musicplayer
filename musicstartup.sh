@@ -23,6 +23,7 @@ fi
     unzip -d libs libs.zip
     rm -f libs.zip
     export PYTHONPATH="$PWD/libs:$PYTHONPATH"
+    sleep 10
 
     # Clear console and run music player.
     git pull origin main
