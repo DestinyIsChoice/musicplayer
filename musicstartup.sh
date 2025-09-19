@@ -21,7 +21,6 @@ fi
     # Unpack dependencies.
     cd musicplayer || return
     unzip -d libs libs.zip
-    cd libs
     export PYTHONPATH="$PWD:$PYTHONPATH"
     cd ../
     rm -f libs.zip
