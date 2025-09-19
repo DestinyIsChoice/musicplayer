@@ -22,12 +22,12 @@ fi
     cd musicplayer || return
     unzip -d libs libs.zip
     rm -f libs.zip
-    export PYTHONPATH="$PWD/libs:$PYTHONPATH"
     sleep 10
 
     # Clear console and run music player.
     git pull origin main
     clear
+    export PYTHONPATH="$PWD/libs:$PYTHONPATH"
     export PYTHONIOENCODING=utf-8
     export PYGAME_HIDE_SUPPORT_PROMPT="1"
     python musicplayer.py
