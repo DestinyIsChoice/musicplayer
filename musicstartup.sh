@@ -29,6 +29,7 @@ fi
     # Clear console and run music player.
     git pull origin main
     clear
+    echo "$PYTHONPATH"
     export PYTHONIOENCODING=utf-8
     export PYGAME_HIDE_SUPPORT_PROMPT="1"
     python musicplayer.py
