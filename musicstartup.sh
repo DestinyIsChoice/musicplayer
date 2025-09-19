@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export PYGAME_HIDE_SUPPORT_PROMPT="1"
+
 # Detect operating system.
 if echo "$PREFIX" | grep -q "com.termux"; then
 
