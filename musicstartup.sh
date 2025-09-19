@@ -1,7 +1,5 @@
 #!/bin/bash
 
-export PYGAME_HIDE_SUPPORT_PROMPT="1"
-
 # Detect operating system.
 if echo "$PREFIX" | grep -q "com.termux"; then
 
@@ -23,12 +21,14 @@ fi
     # Unpack dependencies.
     cd musicplayer || return
     unzip -d libs libs.zip
+    cd libs
+    export PYTHONPATH="$PWD:$PYTHONPATH"
+    cd ../
     rm -f libs.zip
 
     # Clear console and run music player.
     git pull origin main
     clear
-    export PYTHONPATH="$PWD/libs:$PYTHONPATH"
     export PYTHONIOENCODING=utf-8
     export PYGAME_HIDE_SUPPORT_PROMPT="1"
     python musicplayer.py
