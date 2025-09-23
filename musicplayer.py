@@ -577,7 +577,14 @@ def main(initial_input: str) -> None:
                 for album in albums:
                     album_words = album.split(" ")
                     if len(album_words) > 1:
-                        album_characters = [((list(word))[0]).lower() for word in album_words]
+                        album_characters = []
+                        for word in album_words:
+                            try:
+                                album_characters.append(((list(word))[0]).lower())
+                            except IndexError:
+                                pass
+                            except Exception as e:
+                                print(f"→ An error occurred: {e}")
                     else:
                         album_characters = [character.lower() for character in list(album)]
 
@@ -649,7 +656,14 @@ def main(initial_input: str) -> None:
             all_songs.append(song)
             song_words = song.split(" ")
             if len(song_words) > 1:
-                song_characters = [((list(word))[0]).lower() for word in song_words]
+                song_characters = []
+                for word in song_words:
+                    try:
+                        song_characters.append(((list(word))[0]).lower())
+                    except IndexError:
+                        pass
+                    except Exception as e:
+                        print(f"→ An error occurred: {e}")
             else:
                 song_characters = list((song.split(".mp3"))[0])
             song_characters = [character.lower() for character in song_characters]
@@ -843,7 +857,14 @@ def main(initial_input: str) -> None:
                     for inputs, song_path in get_songs(path):
                         song_words = inputs.split(" ")
                         if len(song_words) > 1:
-                            song_characters = [((list(word))[0]).lower() for word in song_words]
+                            song_characters = []
+                            for word in song_words:
+                                try:
+                                    song_characters.append(((list(word))[0]).lower())
+                                except IndexError:
+                                    pass
+                                except Exception as e:
+                                    print(f"→ An error occurred: {e}")
                         else:
                             song_characters = list((inputs.split(".mp3"))[0])
                         song_characters = [character.lower() for character in song_characters]
