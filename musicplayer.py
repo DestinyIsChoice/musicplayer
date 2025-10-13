@@ -8,7 +8,6 @@ import pytubefix.exceptions
 import random
 import shutil
 import subprocess
-import traceback
 import urllib.request
 
 import eyed3
@@ -95,7 +94,6 @@ def get_path() -> None:
                         get_path()
                     except Exception as e:
                         print(f"→ An error occurred: {e}")
-                        traceback.print_exc()
                     return
 
 
@@ -107,7 +105,7 @@ def validate_int() -> int | None:
     if previous could not be transformed into an integer.
     """
 
-    input_time = 2147483
+    input_time = 2147483647
     try:
         # noinspection PyUnresolvedReferences
         input_time = (current_audio.info.length
@@ -117,7 +115,6 @@ def validate_int() -> int | None:
         pass
     except Exception as e:
         print(f"→ An error occurred: {e}")
-        traceback.print_exc()
     # Validates input as an integer by having user input again
     # if not transformable to integer.
     try:
@@ -151,7 +148,6 @@ def validate_int() -> int | None:
                 return None
         except Exception as e:
             print(f"→ An error occurred: {e}")
-            traceback.print_exc()
 
 
 # noinspection SpellCheckingInspection
@@ -177,7 +173,6 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
         get_audio(video_id, folder, name)
     except Exception as e:
         print(f"→ An error occurred: {e}")
-        traceback.print_exc()
 
     # Downloads video from YouTube.
     try:
@@ -202,13 +197,11 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
             ])
         except Exception as e:
             print(f"→ An error occurred: {e}")
-            traceback.print_exc()
         if os.path.isfile(file_name_mp3):
             try:
                 os.remove(f"{file_name}.webm")
             except Exception as e:
                 print(f"→ An error occurred: {e}")
-                traceback.print_exc()
 
         # Downloads audio thumbnail.
         urllib.request.urlretrieve(video.thumbnail_url, f"{file_name}.jpg")
@@ -230,7 +223,6 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
         print("Cannot download this song!")
     except Exception as e:
         print(f"→ An error occurred: {e}")
-        traceback.print_exc()
 
 
 def allow_pausing(current: str) -> None:
@@ -268,7 +260,6 @@ def allow_pausing(current: str) -> None:
         pausable = "_"
     except Exception as e:
         print(f"→ An error occurred: {e}")
-        traceback.print_exc()
 
     # Checks if user intends to pause music, skip song,
     # select a new folder, change the volume or select a new song.
@@ -295,7 +286,6 @@ def allow_pausing(current: str) -> None:
                 allow_pausing(current)
             except Exception as e:
                 print(f"→ An error occurred: {e}")
-                traceback.print_exc()
                 main(input("→ "))
         elif pausable == "^":
             devices = tuple(pygame._sdl2.audio.get_audio_device_names(False))
@@ -328,7 +318,6 @@ def allow_pausing(current: str) -> None:
         main(pausable)
     except Exception as e:
         print(f"→ An error occurred: {e}")
-        traceback.print_exc()
 
 
 def main(initial_input: str) -> None:
@@ -350,7 +339,7 @@ def main(initial_input: str) -> None:
     global currently_playing
     global past_position
     global path
-    input_time = 2147483
+    input_time = 2147483647
     downloaded = False
     downloaded_name = ""
     titles = []
@@ -364,7 +353,6 @@ def main(initial_input: str) -> None:
         pass
     except Exception as e:
         print(f"→ An error occurred: {e}")
-        traceback.print_exc()
 
     # Handles exiting the program, selecting a new music folder,
     # changing the volume, renaming a song and deleting a song.
@@ -377,7 +365,6 @@ def main(initial_input: str) -> None:
                 pass
             except Exception as e:
                 print(f"→ An error occurred: {e}")
-                traceback.print_exc()
             print("→ Exiting!")
             exit(0)
         elif initial_input == "_":
@@ -420,7 +407,6 @@ def main(initial_input: str) -> None:
                     return
             except Exception as e:
                 print(f"→ An error occurred: {e}")
-                traceback.print_exc()
                 try:
                     main(inputimeout(prompt="→ ", timeout=input_time))
                 except TimeoutOccurred:
@@ -439,12 +425,10 @@ def main(initial_input: str) -> None:
                     print("→ Cannot rename!")
                 except Exception as e:
                     print(f"→ An error occurred: {e}")
-                    traceback.print_exc()
             except WindowsError:
                 print("→ Cannot rename this song!")
             except Exception as e:
                 print(f"→ An error occurred: {e}")
-                traceback.print_exc()
             try:
                 main(inputimeout(prompt="→ ", timeout=input_time))
             except TimeoutOccurred:
@@ -462,12 +446,10 @@ def main(initial_input: str) -> None:
                     print("→ Cannot delete!")
                 except Exception as e:
                     print(f"→ An error occurred: {e}")
-                    traceback.print_exc()
             except WindowsError:
                 print("→ Cannot delete this song!")
             except Exception as e:
                 print(f"→ An error occurred: {e}")
-                traceback.print_exc()
             try:
                 main(inputimeout(prompt="→ ", timeout=input_time))
             except TimeoutOccurred:
@@ -517,7 +499,6 @@ def main(initial_input: str) -> None:
         pass
     except Exception as e:
         print(f"→ An error occurred: {e}")
-        traceback.print_exc()
 
     # Handles streaming a song from YouTube.
     try:
@@ -554,7 +535,6 @@ def main(initial_input: str) -> None:
                         return
                     except Exception as e:
                         print(f"→ An error occurred: {e}")
-                        traceback.print_exc()
 
             # Handles downloading a song from YouTube.
             elif initial_input == "'":
@@ -600,7 +580,6 @@ def main(initial_input: str) -> None:
                         return
                     except Exception as e:
                         print(f"→ An error occurred: {e}")
-                        traceback.print_exc()
 
             # Handles streaming an album from YouTube.
             elif initial_input == "$":
@@ -632,7 +611,6 @@ def main(initial_input: str) -> None:
                         return
                     except Exception as e:
                         print(f"→ An error occurred: {e}")
-                        traceback.print_exc()
 
             # Handles downloading an album from YouTube.
             elif initial_input == '"':
@@ -685,7 +663,6 @@ def main(initial_input: str) -> None:
                         return
                     except Exception as e:
                         print(f"→ An error occurred: {e}")
-                        traceback.print_exc()
 
             # Handles playing an album.
             elif initial_input == ":":
@@ -715,7 +692,6 @@ def main(initial_input: str) -> None:
                                     pass
                                 except Exception as e:
                                     print(f"→ An error occurred: {e}")
-                                    traceback.print_exc()
                         else:
                             album_characters = [character.lower() for character in list(album)]
 
@@ -738,7 +714,6 @@ def main(initial_input: str) -> None:
                                 no_index = True
                             except Exception as e:
                                 print(f"→ An error occurred: {e}")
-                                traceback.print_exc()
                             if (len(initial_input.split(" ")) == 1) or no_index:
                                 for number, playable_album in enumerate(intended_albums):
                                     print(f"→ {number + 1}.", playable_album)
@@ -775,7 +750,6 @@ def main(initial_input: str) -> None:
                             return
                         except Exception as e:
                             print(f"→ An error occurred: {e}")
-                            traceback.print_exc()
                         past_position = 0
                         pygame.mixer.music.play()
                         allow_pausing(currently_playing)
@@ -803,7 +777,6 @@ def main(initial_input: str) -> None:
                             pass
                         except Exception as e:
                             print(f"→ An error occurred: {e}")
-                            traceback.print_exc()
                 else:
                     song_characters = list((song.split(".mp3"))[0])
                 song_characters = [character.lower() for character in song_characters]
@@ -836,7 +809,6 @@ def main(initial_input: str) -> None:
                             no_index = True
                         except Exception as e:
                             print(f"→ An error occurred: {e}")
-                            traceback.print_exc()
                         if (len(initial_input.split(" ")) == 1) or no_index:
                             for number, playable_song in enumerate(intended_songs):
                                 if intended_song_paths[number] != "":
@@ -885,7 +857,6 @@ def main(initial_input: str) -> None:
                             return
                         except Exception as e:
                             print(f"→ An error occurred: {e}")
-                            traceback.print_exc()
                     else:
                         random.shuffle(all_songs)
                         all_songs.insert(0, "temp/file.mp3")
@@ -900,7 +871,6 @@ def main(initial_input: str) -> None:
                             return
                         except Exception as e:
                             print(f"→ An error occurred: {e}")
-                            traceback.print_exc()
                         past_position = 0
                         pygame.mixer.music.play()
 
@@ -937,7 +907,6 @@ def main(initial_input: str) -> None:
                             pass
                         except Exception as e:
                             print(f"→ An error occurred: {e}")
-                            traceback.print_exc()
                         all_songs.insert(0, f"{intended_song_paths[0]}{intended_songs[0]}")
                     else:
                         all_songs.insert(0, "temp/file.mp3")
@@ -951,7 +920,6 @@ def main(initial_input: str) -> None:
                             return
                         except Exception as e:
                             print(f"→ An error occurred: {e}")
-                            traceback.print_exc()
                         past_position = 0
                         pygame.mixer.music.play()
 
@@ -982,7 +950,6 @@ def main(initial_input: str) -> None:
                         return
                     except Exception as e:
                         print(f"→ An error occurred: {e}")
-                        traceback.print_exc()
                     past_position = 0
                     pygame.mixer.music.play()
                     allow_pausing(currently_playing)
@@ -1031,7 +998,6 @@ def main(initial_input: str) -> None:
                                         pass
                                     except Exception as e:
                                         print(f"→ An error occurred: {e}")
-                                        traceback.print_exc()
                             else:
                                 song_characters = list((inputs.split(".mp3"))[0])
                             song_characters = [character.lower() for character in song_characters]
@@ -1062,7 +1028,6 @@ def main(initial_input: str) -> None:
                                     no_index = True
                                 except Exception as e:
                                     print(f"→ An error occurred: {e}")
-                                    traceback.print_exc()
                                 if no_index:
                                     intended_songs = [song for number, song
                                                       in enumerate(intended_songs)
@@ -1096,7 +1061,6 @@ def main(initial_input: str) -> None:
                                         pass
                                     except Exception as e:
                                         print(f"→ An error occurred: {e}")
-                                        traceback.print_exc()
                                     all_songs.insert(counter,
                                                      f"{specific_song_path}{specific_song}")
                                 except IndexError:
@@ -1107,7 +1071,6 @@ def main(initial_input: str) -> None:
                                         return
                                 except Exception as e:
                                     print(f"→ An error occurred: {e}")
-                                    traceback.print_exc()
                             elif intended_song_paths[0].replace("/", "") != "temp":
                                 specific_song = intended_songs[0]
                                 specific_song_path = intended_song_paths[0]
@@ -1117,7 +1080,6 @@ def main(initial_input: str) -> None:
                                     pass
                                 except Exception as e:
                                     print(f"→ An error occurred: {e}")
-                                    traceback.print_exc()
                                 all_songs.insert(counter, f"{specific_song_path}{specific_song}")
                     else:
                         try:
@@ -1156,7 +1118,6 @@ def main(initial_input: str) -> None:
                     pass
                 except Exception as e:
                     print(f"→ An error occurred: {e}")
-                    traceback.print_exc()
                 past_position = 0
                 pygame.mixer.music.play()
                 allow_pausing(currently_playing)
@@ -1169,11 +1130,9 @@ def main(initial_input: str) -> None:
         return
     except Exception as e:
         print(f"→ An error occurred: {e}")
-        traceback.print_exc()
 
 
 # Prompts user for music folder before allowing user to select songs.
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
-
