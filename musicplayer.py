@@ -368,10 +368,12 @@ def main(initial_input: str) -> None:
             print("→ Exiting!")
             exit(0)
         elif initial_input == "_":
-            try:
-                main(inputimeout(prompt="→ ", timeout=input_time))
-            except TimeoutOccurred:
+            if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
+                allow_pausing(currently_playing)
                 return
+            else:
+                print("→ No music is playing!")
+                main(input("→ "))
         elif initial_input == "#":
             get_path()
             try:
@@ -488,13 +490,6 @@ def main(initial_input: str) -> None:
                     pygame.mixer.init(devicename=devices[input_number - 1])
                 except pygame.error:
                     print("→ Cannot use this device!")
-        elif initial_input == "@":
-            if pygame.mixer.get_init() and pygame.mixer.music.get_busy():
-                allow_pausing(currently_playing)
-                return
-            else:
-                print("→ No music is playing!")
-                main(input("→ "))
     except IndexError:
         pass
     except Exception as e:
