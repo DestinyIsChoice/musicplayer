@@ -177,7 +177,7 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
     # Downloads video from YouTube.
     try:
         video = YouTube(f"https://www.youtube.com/watch?v={video_id}")
-        audio_stream = video.streams.filter(only_audio=True).first()
+        audio_stream = video.streams.get_audio_only()
         if audio_stream:
             audio_stream.download(output_path="/".join(file_name.split("/")[:-1]),
                                   filename=f"{file_name.split("/")[-1]}.webm")
@@ -1131,3 +1131,4 @@ def main(initial_input: str) -> None:
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
+
