@@ -933,6 +933,8 @@ def main(initial_input: str) -> None:
                         return
             elif titles:
                 random.shuffle(all_songs)
+                all_songs = [f"{song_path}{song}" for song, song_path in get_songs(path)
+                             if song_path.split("/")[0] != "temp"]
                 titles = titles[::-1]
                 for title in titles:
                     all_songs.insert(0, f"{title}.mp3")
@@ -1131,4 +1133,5 @@ def main(initial_input: str) -> None:
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
+
 
