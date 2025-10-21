@@ -18,22 +18,24 @@ if echo "$PREFIX" | grep -q "com.termux"; then
   cp "musicplayer/default.pa" /data/data/com.termux/files/usr/etc/pulse/
 fi
 
-  # Install dependencies.
-  pip install -r musicplayer/requirements.txt
+# Install dependencies.
+pip install -r musicplayer/requirements.txt
 
-  # Clear console and run music player.
-  cd musicplayer || return
-  git pull origin main
-  clear
-
-  export PYTHONIOENCODING=utf-8
-  export PYGAME_HIDE_SUPPORT_PROMPT="1"
-read -pr "→ Please select which servers to use!\n→ 1. YouTube\n→ 2. Tidal\n→ " server
+# Clear console and run music player.
+cd musicplayer || return
+git pull origin main
+clear
+export PYTHONIOENCODING=utf-8
+export PYGAME_HIDE_SUPPORT_PROMPT="1"
+server=""
+echo "→ Please select which servers to use!"
+echo "→ 1. Tidal"
+echo "→ 2. Youtube"
 while [[ $server != "1" && $server != "2" ]]; do
-  read -pr "→ Please select which servers to use!\n→ 1. YouTube\n→ 2. Tidal\n→ " server
+  read -p "→ " server
 done
 if [[ $server == "1" ]]; then
-  python musicplayer_youtube.py
-else
   python musicplayer_tidal.py
+else
+  python musicplayer_youtube.py
 fi
