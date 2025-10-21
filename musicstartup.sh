@@ -28,7 +28,7 @@ fi
 
   export PYTHONIOENCODING=utf-8
   export PYGAME_HIDE_SUPPORT_PROMPT="1"
-server=""
+read -pr "→ Please select which servers to use!\n→ 1. YouTube\n→ 2. Tidal\n→ " server
 while [[ $server != "1" && $server != "2" ]]; do
   read -pr "→ Please select which servers to use!\n→ 1. YouTube\n→ 2. Tidal\n→ " server
 done
