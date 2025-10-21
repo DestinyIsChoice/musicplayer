@@ -104,7 +104,7 @@ def validate_int() -> int | None:
     if previous could not be transformed into an integer.
     """
 
-    input_time = 2147483
+    input_time = 2147482
     try:
         # noinspection PyUnresolvedReferences
         input_time = (current_audio.info.length
@@ -1183,3 +1183,4 @@ def main(initial_input: str) -> None:
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
+
