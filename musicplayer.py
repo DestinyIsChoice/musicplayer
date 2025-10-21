@@ -177,7 +177,7 @@ def get_audio(video_id: str, folder: str, name: str) -> None:
     # Downloads video from YouTube.
     try:
         video = YouTube(f"https://www.youtube.com/watch?v={video_id}")
-        audio_stream = video.streams.get_audio_only()
+        audio_stream = video.streams.filter(only_audio=True).first()
         if audio_stream:
             audio_stream.download(output_path="/".join(file_name.split("/")[:-1]),
                                   filename=f"{file_name.split("/")[-1]}.webm")
@@ -932,9 +932,9 @@ def main(initial_input: str) -> None:
                     except TimeoutOccurred:
                         return
             elif titles:
-                random.shuffle(all_songs)
                 all_songs = [f"{song_path}{song}" for song, song_path in get_songs(path)
                              if song_path.split("/")[0] != "temp"]
+                random.shuffle(all_songs)
                 titles = titles[::-1]
                 for title in titles:
                     all_songs.insert(0, f"{title}.mp3")
@@ -1133,5 +1133,3 @@ def main(initial_input: str) -> None:
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
-
-
