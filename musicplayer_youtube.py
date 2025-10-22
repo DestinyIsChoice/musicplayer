@@ -13,6 +13,7 @@ import urllib.request
 import eyed3
 from eyed3.id3.frames import ImageFrame
 from inputimeout import inputimeout, TimeoutOccurred
+import mutagen.flac
 from mutagen.flac import FLAC
 from mutagen.mp3 import MP3
 from PIL import Image
