@@ -1,12 +1,15 @@
-"""Ultra lightweight python music player."""
+"""Ultra lightweight python music player. Uses Tidal API."""
 
 
 import logging
 import os
 import random
+
+import mutagen.flac
 import requests
 import shutil
 import time
+import traceback
 from urllib import parse
 
 
@@ -17,6 +20,7 @@ from mutagen.flac import FLAC, Picture
 
 # noinspection PyProtectedMember
 from mutagen.id3 import PictureType
+from mutagen.mp3 import MP3
 import pygame
 import pygame._sdl2.audio
 
@@ -46,7 +50,7 @@ def get_songs(songs_path: str) -> list[tuple]:
         for song in songs:
             song_list.append((os.path.join(root, song))
                              .replace("\\", "/").replace(f"{songs_path}/", ""))
-    song_list = [song for song in song_list if song[-5:] == ".flac"]
+    song_list = [song for song in song_list if song[-5:] == ".flac" or song[-4:] == ".mp3"]
 
     # Gets all albums.
     path_list = ["".join(song.split("/")[:-1]) for song in song_list]
@@ -242,15 +246,19 @@ def allow_pausing(current: str) -> None:
     try:
         if pygame.mixer.music.get_pos() == -1:
             return
-        audio = FLAC(current)
+        try:
+            audio = FLAC(current)
+        except mutagen.flac.FLACNoHeaderError:
+            audio = MP3(current)
         current_audio = audio
 
         # Checks if music is being streamed.
         path_list = current.split("/")
-        if path_list[-1].replace(".flac", "") == "file" and path_list[-2] == "temp":
+        if (path_list[-1].replace(".flac", "").replace(".mp3", "") == "file"
+                and path_list[-2] == "temp"):
             print("→ Now playing streamed music!")
         else:
-            print(f"→ Now playing {path_list[-1].replace(".flac", "")}!")
+            print(f"→ Now playing {path_list[-1].replace(".flac", "").replace(".mp3", "")}!")
 
         # Allows for user input.
         pausable = inputimeout(prompt="→ ", timeout=audio.info.length
@@ -260,6 +268,7 @@ def allow_pausing(current: str) -> None:
         pausable = "_"
     except Exception as e:
         print(f"→ An error occurred: {e}")
+        traceback.print_exc()
 
     # Checks if user intends to pause music, skip song,
     # select a new folder, change the volume or select a new song.
@@ -420,11 +429,18 @@ def main(initial_input: str) -> None:
                 os.rename(f"{path}/{to_rename}.flac", f"{path}/{rename}.flac")
             except FileNotFoundError:
                 try:
-                    os.rename(f"{path}/{to_rename}", f"{path}/{rename}")
+                    os.rename(f"{path}/{to_rename}.mp3", f"{path}/{rename}.mp3")
                 except FileNotFoundError:
-                    print("→ Does not exist!")
+                    try:
+                        os.rename(f"{path}/{to_rename}", f"{path}/{rename}")
+                    except FileNotFoundError:
+                        print("→ Does not exist!")
+                    except WindowsError:
+                        print("→ Cannot rename!")
+                    except Exception as e:
+                        print(f"→ An error occurred: {e}")
                 except WindowsError:
-                    print("→ Cannot rename!")
+                    print("→ Cannot rename this song!")
                 except Exception as e:
                     print(f"→ An error occurred: {e}")
             except WindowsError:
@@ -441,11 +457,18 @@ def main(initial_input: str) -> None:
                 os.remove(f"{path}/{remove}.flac")
             except FileNotFoundError:
                 try:
-                    shutil.rmtree(f"{path}/{remove}")
+                    os.remove(f"{path}/{remove}.mp3")
                 except FileNotFoundError:
-                    print("→ Does not exist!")
+                    try:
+                        shutil.rmtree(f"{path}/{remove}")
+                    except FileNotFoundError:
+                        print("→ Does not exist!")
+                    except WindowsError:
+                        print("→ Cannot delete!")
+                    except Exception as e:
+                        print(f"→ An error occurred: {e}")
                 except WindowsError:
-                    print("→ Cannot delete!")
+                    print("→ Cannot delete this song!")
                 except Exception as e:
                     print(f"→ An error occurred: {e}")
             except WindowsError:
@@ -563,7 +586,8 @@ def main(initial_input: str) -> None:
 
                         # Gets song names from user.
                         title = song_results[input_number - 1]["title"]
-                        if os.path.isfile(f"{path}/{title}.flac"):
+                        if (os.path.isfile(f"{path}/{title}.flac")
+                                or os.path.isfile(f"{path}/{title}.mp3")):
                             if input(f"→ Would you like to overwrite {title}? (Y/n) ") == "n":
                                 try:
                                     main(inputimeout(prompt="→ ", timeout=input_time))
@@ -781,7 +805,7 @@ def main(initial_input: str) -> None:
                     # noinspection PyUnboundLocalVariable
                     album_path = intended_albums[index - 1]
                     album_songs = [song for song in os.listdir(f"{path}/{album_path}")
-                                   if song[-5:] == ".flac"]
+                                   if song[-5:] == ".flac" or song[-4:] == ".mp3"]
                     album_songs.sort(key=lambda x: os.path.getmtime(f"{path}/{album_path}/{x}"))
                     pygame.mixer.init()
 
@@ -822,7 +846,7 @@ def main(initial_input: str) -> None:
                         except Exception as e:
                             print(f"→ An error occurred: {e}")
                 else:
-                    song_characters = list((song.split(".flac"))[0])
+                    song_characters = list(song.replace(".flac", "").replace(".mp3", ""))
                 song_characters = [character.lower() for character in song_characters]
 
                 # Checks if user input matches song.
@@ -862,7 +886,10 @@ def main(initial_input: str) -> None:
                                                         .replace("/", "")}) "
                                 else:
                                     intended_path = ""
-                                print(f"→ {number + 1}. {intended_path}{playable_song[:-5]}")
+                                if playable_song[-5:] == ".flac":
+                                    print(f"→ {number + 1}. {intended_path}{playable_song[:-5]}")
+                                else:
+                                    print(f"→ {number + 1}. {intended_path}{playable_song[:-4]}")
                             index = validate_int()
 
                         # Accounts for if user has already selected
@@ -1047,7 +1074,8 @@ def main(initial_input: str) -> None:
                                     except Exception as e:
                                         print(f"→ An error occurred: {e}")
                             else:
-                                song_characters = list((inputs.split(".flac"))[0])
+                                song_characters = list(inputs.replace(".flac", "")
+                                                       .replace(".mp3", ""))
                             song_characters = [character.lower() for character in song_characters]
                             matching_characters = 0
                             for letter in list(input_characters):
@@ -1088,8 +1116,12 @@ def main(initial_input: str) -> None:
                                                                 .replace("/", "")}) "
                                         else:
                                             intended_path = ""
-                                        print(f"→ {number + 1}. "
-                                              f"{intended_path}{playable_song[:-5]}")
+                                        if playable_song[-5:] == ".flac":
+                                            print(f"→ {number + 1}. "
+                                                  f"{intended_path}{playable_song[:-5]}")
+                                        else:
+                                            print(f"→ {number + 1}. "
+                                                  f"{intended_path}{playable_song[:-4]}")
                                     index = validate_int()
 
                                 # Accounts for if user has already
@@ -1183,5 +1215,3 @@ def main(initial_input: str) -> None:
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
-
-
