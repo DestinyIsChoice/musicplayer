@@ -4,8 +4,6 @@
 import logging
 import os
 import random
-
-import mutagen.flac
 import requests
 import shutil
 import time
@@ -14,6 +12,7 @@ from urllib import parse
 
 
 from inputimeout import inputimeout, TimeoutOccurred
+import mutagen.flac
 
 # noinspection PyProtectedMember
 from mutagen.flac import FLAC, Picture
