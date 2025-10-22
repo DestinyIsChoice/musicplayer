@@ -1,4 +1,4 @@
-"""Ultra lightweight python music player."""
+"""Ultra lightweight python music player. Uses YouTube API."""
 
 
 import json
@@ -13,6 +13,7 @@ import urllib.request
 import eyed3
 from eyed3.id3.frames import ImageFrame
 from inputimeout import inputimeout, TimeoutOccurred
+from mutagen.flac import FLAC
 from mutagen.mp3 import MP3
 from PIL import Image
 import pygame
@@ -242,15 +243,19 @@ def allow_pausing(current: str) -> None:
     try:
         if pygame.mixer.music.get_pos() == -1:
             return
-        audio = MP3(current)
+        try:
+            audio = FLAC(current)
+        except mutagen.flac.FLACNoHeaderError:
+            audio = MP3(current)
         current_audio = audio
 
         # Checks if music is being streamed.
         path_list = current.split("/")
-        if path_list[-1].replace(".mp3", "") == "file" and path_list[-2] == "temp":
+        if (path_list[-1].replace(".flac", "").replace(".mp3", "") == "file"
+                and path_list[-2] == "temp"):
             print("→ Now playing streamed music!")
         else:
-            print(f"→ Now playing {path_list[-1].replace(".mp3", "")}!")
+            print(f"→ Now playing {path_list[-1].replace(".flac", "").replace(".mp3", "")}!")
 
         # Allows for user input.
         pausable = inputimeout(prompt="→ ", timeout=audio.info.length
@@ -417,14 +422,21 @@ def main(initial_input: str) -> None:
             to_rename = input("→ ")
             rename = input("→ ")
             try:
-                os.rename(f"{path}/{to_rename}.mp3", f"{path}/{rename}.mp3")
+                os.rename(f"{path}/{to_rename}.flac", f"{path}/{rename}.flac")
             except FileNotFoundError:
                 try:
-                    os.rename(f"{path}/{to_rename}", f"{path}/{rename}")
+                    os.rename(f"{path}/{to_rename}.mp3", f"{path}/{rename}.mp3")
                 except FileNotFoundError:
-                    print("→ Does not exist!")
+                    try:
+                        os.rename(f"{path}/{to_rename}", f"{path}/{rename}")
+                    except FileNotFoundError:
+                        print("→ Does not exist!")
+                    except WindowsError:
+                        print("→ Cannot rename!")
+                    except Exception as e:
+                        print(f"→ An error occurred: {e}")
                 except WindowsError:
-                    print("→ Cannot rename!")
+                    print("→ Cannot rename this song!")
                 except Exception as e:
                     print(f"→ An error occurred: {e}")
             except WindowsError:
@@ -438,14 +450,21 @@ def main(initial_input: str) -> None:
         elif initial_input == "=":
             remove = input("→ ")
             try:
-                os.remove(f"{path}/{remove}.mp3")
+                os.remove(f"{path}/{remove}.flac")
             except FileNotFoundError:
                 try:
-                    shutil.rmtree(f"{path}/{remove}")
+                    os.remove(f"{path}/{remove}.mp3")
                 except FileNotFoundError:
-                    print("→ Does not exist!")
+                    try:
+                        shutil.rmtree(f"{path}/{remove}")
+                    except FileNotFoundError:
+                        print("→ Does not exist!")
+                    except WindowsError:
+                        print("→ Cannot delete!")
+                    except Exception as e:
+                        print(f"→ An error occurred: {e}")
                 except WindowsError:
-                    print("→ Cannot delete!")
+                    print("→ Cannot delete this song!")
                 except Exception as e:
                     print(f"→ An error occurred: {e}")
             except WindowsError:
@@ -545,7 +564,8 @@ def main(initial_input: str) -> None:
 
                     # Gets song names from user.
                     title = clean(input("→ Please input a title for this song!\n→ "))
-                    if os.path.isfile(f"{path}/{title}.mp3"):
+                    if (os.path.isfile(f"{path}/{title}.mp3")
+                            or os.path.isfile(f"{path}/{title}.flac")):
                         if input(f"→ Would you like to overwrite {title}? (Y/n) ") == "n":
                             try:
                                 main(inputimeout(prompt="→ ", timeout=input_time))
@@ -732,7 +752,7 @@ def main(initial_input: str) -> None:
                     # noinspection PyUnboundLocalVariable
                     album_path = intended_albums[index - 1]
                     album_songs = [song for song in os.listdir(f"{path}/{album_path}")
-                                   if song[-4:] == ".mp3"]
+                                   if song[-4:] == ".mp3" or song[-5:] == ".flac"]
                     album_songs.sort(key=lambda x: os.path.getmtime(f"{path}/{album_path}/{x}"))
                     pygame.mixer.init()
 
@@ -773,7 +793,7 @@ def main(initial_input: str) -> None:
                         except Exception as e:
                             print(f"→ An error occurred: {e}")
                 else:
-                    song_characters = list((song.split(".mp3"))[0])
+                    song_characters = list(song.replace(".mp3", "").replace(".flac", ""))
                 song_characters = [character.lower() for character in song_characters]
 
                 # Checks if user input matches song.
@@ -789,6 +809,8 @@ def main(initial_input: str) -> None:
                                   in enumerate(intended_songs)
                                   if os.path.isfile(f"{path}/{intended_song_paths[number]}"
                                                     f"{song_path}")]
+            elif titles:
+                intended_songs = []
             else:
                 intended_songs = [""]
 
@@ -996,7 +1018,8 @@ def main(initial_input: str) -> None:
                                     except Exception as e:
                                         print(f"→ An error occurred: {e}")
                             else:
-                                song_characters = list((inputs.split(".mp3"))[0])
+                                song_characters = list(inputs.replace(".mp3", "")
+                                                       .replace(".flac", ""))
                             song_characters = [character.lower() for character in song_characters]
                             matching_characters = 0
                             for letter in list(input_characters):
@@ -1133,5 +1156,3 @@ def main(initial_input: str) -> None:
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
-
-
