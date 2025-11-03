@@ -14,7 +14,8 @@ pillow
 pygame
 
 # Allows for YouTube audio to be downloaded.
-pytubefix
+pytubefix==9.5.0
 
 # Allows for YouTube to be searched for audio.
 youtube-search
+
