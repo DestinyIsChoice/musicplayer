@@ -153,19 +153,19 @@ def validate_int() -> int | None:
 
 
 def search(search_query: str) -> dict:
-    return requests.get(f"https://hifi.401658.xyz/search?s={
+    return requests.get(f"https://wolf.qqdl.site/search?s={
             parse.quote(search_query, safe='/', encoding=None, errors=None)}"
                         f"&li=10").json()["items"]
 
 
 def search_album(search_query: str) -> dict:
-    return requests.get(f"https://hifi.401658.xyz/search?al={
+    return requests.get(f"https://wolf.qqdl.site/search?al={
             parse.quote(search_query, safe='/', encoding=None, errors=None)}"
                         f"&li=10").json()["albums"]["items"]
 
 
 def get_songs_of_album(album_id: int) -> dict:
-    return requests.get(f"https://hifi.401658.xyz/album?id={album_id}").json()[1]["items"]
+    return requests.get(f"https://wolf.qqdl.site/album?id={album_id}").json()[1]["items"]
 
 
 def get_audio(song_id: int, folder: str, name: str) -> None:
@@ -202,7 +202,7 @@ def get_audio(song_id: int, folder: str, name: str) -> None:
                 try:
                     while song["detail"] == "Too Many Requests":
                         time.sleep(1)
-                        song = requests.get(f"https://hifi.401658.xyz/track?id={song_id}"
+                        song = requests.get(f"https://wolf.qqdl.site/track?id={song_id}"
                                             f"&quality=HI_RES").json()
                 except TypeError:
                     pass
@@ -1214,3 +1214,4 @@ def main(initial_input: str) -> None:
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
+
