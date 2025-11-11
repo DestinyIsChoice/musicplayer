@@ -30,7 +30,7 @@ export PYGAME_HIDE_SUPPORT_PROMPT="1"
 server=""
 echo "→ Please select which servers to use!"
 echo "→ 1. Tidal"
-echo "→ 2. Youtube"
+echo "→ 2. YouTube"
 while [[ $server != "1" && $server != "2" ]]; do
   read -p "→ " server
 done
