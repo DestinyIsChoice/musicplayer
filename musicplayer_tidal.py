@@ -533,6 +533,7 @@ def main(initial_input: str) -> None:
                 pygame.mixer.music.set_volume(current_volume)
                 pygame.mixer.music.set_pos(position)
                 past_position = position
+                return
             else:
                 if pygame.mixer.get_init():
                     pygame.mixer.quit()
@@ -540,8 +541,16 @@ def main(initial_input: str) -> None:
                     pygame.mixer.init(devicename=devices[input_number - 1])
                 except pygame.error:
                     print("→ Cannot use this device!")
+                try:
+                    main(inputimeout(prompt="→ ", timeout=input_time))
+                except TimeoutOccurred:
+                    return
         elif initial_input == "@":
             get_lyrics(input_time)
+            try:
+                main(inputimeout(prompt="→ ", timeout=input_time))
+            except TimeoutOccurred:
+                return
     except IndexError:
         pass
     except Exception as e:
