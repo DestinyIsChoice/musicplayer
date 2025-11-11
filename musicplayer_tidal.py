@@ -195,7 +195,7 @@ def get_audio(song_id: int, folder: str, name: str) -> None:
     except OSError:
         pass
     with open(song_title, "wb") as song_file:
-        song = requests.get(f"https://hifi.401658.xyz/track?id={song_id}"
+        song = requests.get(f"https://wolf.qqdl.site/track?id={song_id}"
                             f"&quality=HI_RES").json()
         try:
             if song["detail"] == "Too Many Requests":
@@ -215,7 +215,7 @@ def get_audio(song_id: int, folder: str, name: str) -> None:
         song_url = song[2]["OriginalTrackUrl"]
         song_file.write(requests.get(song_url).content)
     with open(cover_title, "wb") as cover_file:
-        cover_url = requests.get(f"https://hifi.401658.xyz/cover?id={song_id}").json()[0]["1280"]
+        cover_url = requests.get(f"https://wolf.qqdl.site/cover?id={song_id}").json()[0]["1280"]
         cover_file.write(requests.get(cover_url).content)
     audio = FLAC(song_title)
     image_data = open(cover_title, 'rb').read()
@@ -1214,4 +1214,5 @@ def main(initial_input: str) -> None:
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
+
 
