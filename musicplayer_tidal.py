@@ -4,10 +4,10 @@
 import logging
 import os
 import random
+
 import requests
 import shutil
 import time
-import traceback
 from urllib import parse
 
 
@@ -26,6 +26,7 @@ import pygame._sdl2.audio
 
 # noinspection SpellCheckingInspection
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+api = "https://wolf.qqdl.site"
 current_audio = ""
 current_volume = 100
 currently_playing = ""
@@ -153,19 +154,42 @@ def validate_int() -> int | None:
 
 
 def search(search_query: str) -> dict:
-    return requests.get(f"https://wolf.qqdl.site/search?s={
+    return requests.get(f"{api}/search?s={
             parse.quote(search_query, safe='/', encoding=None, errors=None)}"
                         f"&li=10").json()["items"]
 
 
 def search_album(search_query: str) -> dict:
-    return requests.get(f"https://wolf.qqdl.site/search?al={
+    return requests.get(f"{api}/search?al={
             parse.quote(search_query, safe='/', encoding=None, errors=None)}"
                         f"&li=10").json()["albums"]["items"]
 
 
 def get_songs_of_album(album_id: int) -> dict:
-    return requests.get(f"https://wolf.qqdl.site/album?id={album_id}").json()[1]["items"]
+    return requests.get(f"{api}/album?id={album_id}").json()[1]["items"]
+
+
+def get_lyrics(timing: int) -> None:
+    song_results = search(inputimeout(prompt="→ ", timeout=timing))
+    if song_results:
+        for number, song in enumerate(song_results):
+            print(f"→ {number + 1}. ({song["artist"]["name"]}) {song["title"]}")
+        while True:
+            input_number = validate_int()
+            try:
+                if 10 >= input_number >= 1:
+                    break
+            except TypeError:
+                pass
+            except Exception as e:
+                print(f"→ An error occurred: {e}")
+        try:
+            print(requests.get(f"{api}/lyrics?id={song_results[input_number - 1]["id"]}")
+                  .json()[0]["lyrics"])
+        except KeyError:
+            pass
+        except Exception as e:
+            print(f"→ An error occurred: {e}")
 
 
 def get_audio(song_id: int, folder: str, name: str) -> None:
@@ -195,14 +219,14 @@ def get_audio(song_id: int, folder: str, name: str) -> None:
     except OSError:
         pass
     with open(song_title, "wb") as song_file:
-        song = requests.get(f"https://wolf.qqdl.site/track?id={song_id}"
+        song = requests.get(f"{api}/track?id={song_id}"
                             f"&quality=HI_RES").json()
         try:
             if song["detail"] == "Too Many Requests":
                 try:
                     while song["detail"] == "Too Many Requests":
                         time.sleep(1)
-                        song = requests.get(f"https://wolf.qqdl.site/track?id={song_id}"
+                        song = requests.get(f"{api}/track?id={song_id}"
                                             f"&quality=HI_RES").json()
                 except TypeError:
                     pass
@@ -215,7 +239,7 @@ def get_audio(song_id: int, folder: str, name: str) -> None:
         song_url = song[2]["OriginalTrackUrl"]
         song_file.write(requests.get(song_url).content)
     with open(cover_title, "wb") as cover_file:
-        cover_url = requests.get(f"https://wolf.qqdl.site/cover?id={song_id}").json()[0]["1280"]
+        cover_url = requests.get(f"{api}/cover?id={song_id}").json()[0]["1280"]
         cover_file.write(requests.get(cover_url).content)
     audio = FLAC(song_title)
     image_data = open(cover_title, 'rb').read()
@@ -267,7 +291,6 @@ def allow_pausing(current: str) -> None:
         pausable = "_"
     except Exception as e:
         print(f"→ An error occurred: {e}")
-        traceback.print_exc()
 
     # Checks if user intends to pause music, skip song,
     # select a new folder, change the volume or select a new song.
@@ -319,6 +342,11 @@ def allow_pausing(current: str) -> None:
             pygame.mixer.music.set_volume(current_volume)
             pygame.mixer.music.set_pos(position)
             past_position = position
+            allow_pausing(current)
+        elif pausable == "@":
+
+            # noinspection PyUnboundLocalVariable
+            get_lyrics(audio.info.length - pygame.mixer.music.get_pos() / 1000 - past_position)
             allow_pausing(current)
         else:
             main(pausable)
@@ -512,6 +540,8 @@ def main(initial_input: str) -> None:
                     pygame.mixer.init(devicename=devices[input_number - 1])
                 except pygame.error:
                     print("→ Cannot use this device!")
+        elif initial_input == "@":
+            get_lyrics(input_time)
     except IndexError:
         pass
     except Exception as e:
@@ -1214,5 +1244,3 @@ def main(initial_input: str) -> None:
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
-
-
