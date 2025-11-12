@@ -184,8 +184,8 @@ def get_lyrics(timing: int) -> None:
             except Exception as e:
                 print(f"→ An error occurred: {e}")
         try:
-            print(requests.get(f"{api}/lyrics?id={song_results[input_number - 1]["id"]}")
-                  .json()[0]["lyrics"])
+            print(f"→ {requests.get(f"{api}/lyrics?id={song_results[input_number - 1]["id"]}")
+                  .json()[0]["lyrics"].replace("\n", "\n→ ")}")
         except KeyError:
             pass
         except Exception as e:
