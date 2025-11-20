@@ -26,7 +26,7 @@ import pygame._sdl2.audio
 
 # noinspection SpellCheckingInspection
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-api = "https://wolf.qqdl.site"
+api = "https://tidal.kinoplus.online"
 current_audio = ""
 current_volume = 100
 currently_playing = ""
@@ -1253,3 +1253,4 @@ def main(initial_input: str) -> None:
 if __name__ == "__main__":
     get_path()
     main(input("→ "))
+
